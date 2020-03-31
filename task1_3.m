@@ -25,7 +25,11 @@ for k = 1:D
         end  
     end
     EVals(k) = max;
-    EVecs(:,k) = vecs(:,maxindex);
+    vectorK = vecs(:,maxindex);
+    if vectorK(1) < 0
+        vectorK = vectorK*-1;
+    end
+    EVecs(:,k) = vectorK;
     vals(maxindex,maxindex) = 0;
 end
 

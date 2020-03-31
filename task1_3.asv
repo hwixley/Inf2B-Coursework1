@@ -25,7 +25,10 @@ for k = 1:D
         end  
     end
     EVals(k) = max;
-    EVecs(:,k) = vecs(:,maxindex);
+    vectorK = vecs(:,maxindex);
+    if vectorK(1) < 0
+        vectorK(1) = vectorK(1)*-1;
+    EVecs(:,k) = ;
     vals(maxindex,maxindex) = 0;
 end
 
@@ -36,7 +39,7 @@ for h = 1:D
     for g = 1:h
         eigVals(g) = EVals(g);
     end
-    Cumvar(h) = sum((eigVals - mean(eigVals)).^2)/D
+    Cumvar(h) = MyVar(eigVals);
 end
 
 
