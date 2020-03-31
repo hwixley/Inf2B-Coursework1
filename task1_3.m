@@ -29,6 +29,16 @@ for k = 1:D
     vals(maxindex,maxindex) = 0;
 end
 
+Cumvar = zeros(D,1);
+for h = 1:D
+    eigVals = zeros(h,1);
+
+    for g = 1:h
+        eigVals(g) = EVals(g);
+    end
+    Cumvar(h) = sum((eigVals - mean(eigVals)).^2)/D;
+end
+
 
   save('t1_EVecs.mat', 'EVecs');
   save('t1_EVals.mat', 'EVals');
