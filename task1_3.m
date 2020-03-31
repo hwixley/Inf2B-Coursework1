@@ -36,7 +36,7 @@ for h = 1:D
     for g = 1:h
         eigVals(g) = EVals(g);
     end
-    Cumvar(h) = sum((eigVals - mean(eigVals)).^2)/D;
+    Cumvar(h) = MyVar(eigVals);
 end
 
 
