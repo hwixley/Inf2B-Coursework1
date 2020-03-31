@@ -43,6 +43,16 @@ for h = 1:D
     Cumvar(h) = MyVar(eigVals);
 end
 
+MinDims = zeros(4,1);
+percent = [0.7, 0.8, 0.9, 0.95];
+for f = 1:4
+    for j = 1:D
+        if Cumvar(j)/Cumvar(D) >= percent(f) && MinDims(f) == 0
+            MinDims(f) = j;
+        end
+    end
+end
+        
 
   save('t1_EVecs.mat', 'EVecs');
   save('t1_EVals.mat', 'EVals');

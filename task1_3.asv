@@ -27,8 +27,9 @@ for k = 1:D
     EVals(k) = max;
     vectorK = vecs(:,maxindex);
     if vectorK(1) < 0
-        vectorK(1) = vectorK(1)*-1;
-    EVecs(:,k) = ;
+        vectorK = vectorK*-1;
+    end
+    EVecs(:,k) = vectorK;
     vals(maxindex,maxindex) = 0;
 end
 
@@ -42,6 +43,16 @@ for h = 1:D
     Cumvar(h) = MyVar(eigVals);
 end
 
+MinDims = zeros(4,1);
+percent = [0.7, 0.8, 0.9, 0.95];
+for f = 1:4
+    for j = 1:D
+        if Cumvar(j)/Cumvar(D) >= percent(f) &
+            MinDims(f) = j;
+        end
+    end
+end
+        
 
   save('t1_EVecs.mat', 'EVecs');
   save('t1_EVals.mat', 'EVals');
