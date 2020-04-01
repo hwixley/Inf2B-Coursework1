@@ -26,13 +26,8 @@ end
 classNum = zeros(maxClass,1);
     
 for b = 1:maxClass
-    classNum(b) = sum(Y == b);
-end
-
-meanFoldVecs = zeros(maxClass,1);
-for c = 1:maxClass
-    meanFoldVecs(c) = floor(classNum(c)/Kfolds);
-end
+    bClasses = Y
+    classNum(b) = sum(Y
 
 
 
