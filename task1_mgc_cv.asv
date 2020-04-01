@@ -17,18 +17,47 @@ function task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds)
 
 [N, D] = size(X);
 
+% loop to find number of different classes, repr. by maxClass
 maxClass = 1;
 for a = 1:N
     if Y(a) > maxClass
         maxClass = Y(a);
     end
 end
-classNum = zeros(maxClass,1);
-    
-for b = 1:maxClass
-    bClasses = Y
-    classNum(b) = sum(Y
 
+% loop to find number of samples for each class, repr. by classNum
+classNum = zeros(maxClass,1);
+classInd = zeros(N,maxClass);
+for b = 1:maxClass
+    classNum(b) = sum(Y == b);
+    classInd(:,b) = Y == b;
+end
+
+% loop to find mean number of vectors for a given class in a partition
+meanFoldVecs = zeros(maxClass,1);
+remainders = zeros(maxClass,1);
+for c = 1:maxClass
+    meanFoldVecs(c) = floor(classNum(c)/Kfolds);
+    remainders(c) = rem(classNum(c),Kfolds);
+end
+
+%INITIALISATION OF PMap:
+PMap = zeros(N,1);
+for d = Kfolds:-1:1
+    for e = 1:maxClass
+        numVecs = meanFoldVecs(e) + remainders(e);
+        if remainders(e) > 0
+            remainders(e) = remainders(e) -1;
+        end
+        for f = N:-1:1
+            if classInd(f,e) == 1
+                PMap(f) = d;
+                numVecs = numVecs -1;
+                if numVecs
+        end
+        
+    end
+end
 
 
   % save('t1_mgc_<Kfolds>cv_PMap.mat', 'PMap');
