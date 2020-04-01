@@ -84,7 +84,26 @@ for g = 1:maxClass
     end
 end
 
-
+C = maxClass*Kfolds;
+Ms = zeros(C,D);
+cInd = 1;
+for i = 1:Kfolds
+    for j = 1:maxClass
+        startI = foldIndexes(i,j);
+        if j ~= maxClass
+            endI = foldIndexes(i,j+1)-1;
+        elseif i ~= Kfolds
+            endI = foldIndexes(i+1,1)-1;
+        else
+            endI = N;
+        end
+        vex = partitX((startI:endI),:);
+        % Think this mean vector calc. is wrong
+        % We are asked to calc. from samples that dont belong to partit. p
+        Ms(cInd,:) = mean(vex);
+        save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
+    end
+end
 
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % For each <p> and <CovKind>
