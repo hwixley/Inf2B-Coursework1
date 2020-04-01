@@ -48,8 +48,8 @@ for d = Kfolds:-1:1
     for e = 1:maxClass
         remE = 0;
         if remainders(e) > 0
-            remE = 1;
-            remainders(e) = remainders(e) -1;
+            remE = remainders(e);
+            remainders(e) = 0;
         end
         numVecs = meanFoldVecs(e) + remE;
 
