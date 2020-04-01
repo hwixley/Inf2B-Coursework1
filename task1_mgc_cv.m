@@ -42,30 +42,48 @@ for c = 1:maxClass
 end
 
 %INITIALISATION OF PMap:
-currIndex = N.*ones(maxClass,1);
 PMap = zeros(N,1);
-for d = Kfolds:-1:1
-    for e = 1:maxClass
-        remE = 0;
-        if remainders(e) > 0
-            remE = remainders(e);
-            remainders(e) = 0;
-        end
-        numVecs = meanFoldVecs(e) + remE;
+lastClassIndex = ones(maxClass,1);
+partitX = zeros(N,D); % Ordered data set X, P=1:C1-C10 -> P=N:C1->C10
+pXI = 1;
+foldIndexes = zeros(Kfolds,maxClass);%Matrix of fold & class partitX index'
 
-        for f = currIndex(e):-1:1
+for d = 1:Kfolds-1
+    for e = 1:maxClass
+        foldIndexes(d,e) = pXI;
+        numVecs = meanFoldVecs(e);
+        for f = lastClassIndex(e):N
             if classInd(f,e) == 1
+                partitX(pXI,:) = X(f,:);
+                pXI = PXI + 1;
+                
                 PMap(f) = d;
                 numVecs = numVecs -1;
                 if numVecs == 0
-                    currIndex(e) = f-1;
-                    break;
+                    lastClassIndex(e) = f+1;
+                    break
                 end
             end
         end
-        
     end
 end
+for g = 1:maxClass
+    foldIndexes(maxClass,g) = pXI;
+    numVecs = meanFoldVecs(g) + remainders(g);
+    for h = lastClassIndex(g):N
+        if classInd(h,g) == 1
+            partitX(pXI,:) = X(f,:);
+            pXI = pXI + 1;
+            
+            PMap(h) = d;
+            numVecs = numVecs -1;
+            if numVecs == 0
+                break
+            end
+        end
+    end
+end
+
 
 
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
