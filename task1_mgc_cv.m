@@ -55,7 +55,7 @@ for d = 1:Kfolds-1
         for f = lastClassIndex(e):N
             if classInd(f,e) == 1
                 partitX(pXI,:) = X(f,:);
-                pXI = PXI + 1;
+                pXI = pXI + 1;
                 
                 PMap(f) = d;
                 numVecs = numVecs -1;
@@ -68,7 +68,7 @@ for d = 1:Kfolds-1
     end
 end
 for g = 1:maxClass
-    foldIndexes(maxClass,g) = pXI;
+    foldIndexes(Kfolds,g) = pXI;
     numVecs = meanFoldVecs(g) + remainders(g);
     for h = lastClassIndex(g):N
         if classInd(h,g) == 1
@@ -84,6 +84,9 @@ for g = 1:maxClass
     end
 end
 
+foldIndexes
+%partitX
+
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
 
 C = maxClass*Kfolds;
@@ -91,8 +94,9 @@ Ms = zeros(C,D);
 cInd = 1;
 for i = 1:Kfolds
     for j = 1:maxClass
-        vex = zeros(maxClass-1,D);
+        vex = zeros(Kfolds-1,D);
         vexInd = 1;
+        
         if i > 1
             for k = 1:(i-1)
                 ind = foldIndexes(k,j);
