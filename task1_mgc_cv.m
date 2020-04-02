@@ -118,7 +118,7 @@ for i = 1:Kfolds
             end
         end
 
-        Ms(cInd,:) = mean(vex);
+        Ms(cInd,:) = MyMean(vex);
         save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
         
         
