@@ -89,7 +89,10 @@ end
 
 C = maxClass*Kfolds;
 Ms = zeros(C,D);
+Covs = zeros(D,D);
+regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
 cInd = 1;
+
 for i = 1:Kfolds
     for j = 1:maxClass
         vex = zeros(Kfolds-1,D);
@@ -120,14 +123,40 @@ for i = 1:Kfolds
         save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
         % Ms for fold i, class j, successfully initialised and saved
         
+        cov = regularize + MyCov(vex);
+        if CovKind == 1
+            Covs(:,:,cInd) = cov;
+            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+        elseif CovKind == 2
+            Covs(:,:,cInd) = diag(diag(cov));
+            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+        end
+        
         cInd = cInd + 1;
     end
 end
 
-
+if CovKind == 3
+    covSharedSum = 0;
+    for m = 1:maxClass
+        vex = zeros(Kfolds,D);
+        for n = 1:Kfolds
+            vex(n,:) = partitX(foldIndexes(n,m),:);
+        end
+        covSharedSum = covSharedSum + MyCov(vex);
+    end
+    sharedCov = covSharedSum/maxClass;
+    Covs = sharedCov.*ones(C,1);
+    for o = 1:maxClass
+        for p = 1:Kfolds
+            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,p,CovKind), 'Covs');
+        end
+    end
+end
+            
   % For each <p> and <CovKind>
-  %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms');
-  %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs');
+  %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
+  %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs'); COMPLETE
   %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_CM.mat', 'CM');
   %  save('t1_mgc_<Kfolds>cv<L>_ck<CovKind>_CM.mat', 'CM');
   % NB: replace <Kfolds>, <p>, and <CovKind> properly.
