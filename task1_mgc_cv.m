@@ -84,10 +84,8 @@ for g = 1:maxClass
     end
 end
 
-foldIndexes
-%partitX
-
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
+  % PMap successfully initialised and saved
 
 C = maxClass*Kfolds;
 Ms = zeros(C,D);
@@ -120,7 +118,7 @@ for i = 1:Kfolds
 
         Ms(cInd,:) = MyMean(vex);
         save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
-        
+        % Ms for fold i, class j, successfully initialised and saved
         
         cInd = cInd + 1;
     end
