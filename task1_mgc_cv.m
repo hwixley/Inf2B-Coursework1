@@ -87,6 +87,7 @@ end
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % PMap successfully initialised and saved
 
+% INITIALISATION OF Ms AND Covs:
 C = maxClass*Kfolds;
 Ms = zeros(C,D);
 Covs = zeros(D,D);
