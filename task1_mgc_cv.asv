@@ -87,14 +87,16 @@ end
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % PMap successfully initialised and saved
 
-% INITIALISATION OF Ms AND Covs (CovKind == 1 or 2):
-C = maxClass*Kfolds;
-Ms = zeros(C,D);
-Covs = zeros(C,D,D);
+% INITIALISATION OF Ms AND Covs:
+C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
-cInd = 1;
+MsALL = zeros(maxClass*Kfolds,D);
 
 for i = 1:Kfolds
+    Ms = zeros(C,D);
+    Covs = zeros(C,D,D);
+    covSharedSum = 0;
+    
     for j = 1:maxClass
         vex = zeros(Kfolds-1,D);
         vexInd = 1;
@@ -120,45 +122,91 @@ for i = 1:Kfolds
             end
         end
 
-        Ms(cInd,:) = MyMean(vex);
-        %save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
+        Ms(j,:) = MyMean(vex);
+        MsALL(j+(maxClass*(i-1)),:) = MyMean(vex);
         % Ms for fold i, class j, successfully initialised and saved
         
         cov = regularize + MyCov(vex);
         if CovKind == 1
-            Covs(cInd,:,:) = cov;
-            %save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+            Covs(j,:,:) = cov;
         elseif CovKind == 2
-            Covs(cInd,:,:) = diag(diag(cov));
-            %save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+            Covs(j,:,:) = diag(diag(cov));
+        else
+            covSharedSum = covSharedSum + MyCov(vex);
         end
-        
-        cInd = cInd + 1;
     end
+    
+    if CovKind == 3
+        cov = regularize + (covSharedSum/maxClass);
+        for k = 1:maxClass
+            Covs(k,:,:) = cov;
+        end
+    end
+        
     save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
-% INITIALISATION OF COVS FOR CovKind == 3
-if CovKind == 3
-    covSharedSum = 0;
-    for m = 1:maxClass
-        vex = zeros(Kfolds,D);
-        for n = 1:Kfolds
-            vex(n,:) = partitX(foldIndexes(n,m),:);
-        end
-        covSharedSum = covSharedSum + MyCov(vex);
-    end
-    sharedCov = regularize + (covSharedSum/maxClass);
 
-    for o = 1:maxClass
-        for p = 1:Kfolds
-            ind = o + (p-1)*maxClass;
-            Covs(ind,:,:) = sharedCov;
-            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,p,CovKind), 'Covs');
-        end
+save('partitX.mat', 'partitX');
+save('foldIndexes.mat','foldIndexes');
+
+
+% CALCULATE CONFUSION MATRIX:
+prior = sum(classInd)./sum(sum(classInd));
+CM = zeros(maxClass,maxClass);
+
+for q = 1:Kfolds
+    if q < Kfolds
+        rowNum = foldIndexes(q+1,1) - foldIndexes(q,1);
+        startI = foldIndexes(q,1);
+        endI = foldIndexes(q+1,1)-1;
+    else 
+        rowNum = N - foldIndexes(q,1) + 1;
+        startI = foldIndexes(q,1);
+        endI = N;
     end
-end
+    
+    test_prob = zeros(rowNum,maxClass);
+    partition = partitX((startI:endI),:);
+    test_labels = zeros(rowNum,1);
+    if q < Kfolds
+        ind = 1;
+        for t = 1:maxClass
+            endI = meanFoldVecs(t);
+            test_labels(ind:endI) = t;
+            ind = endI+1;
+        end
+    else
+        ind = 1;
+        for t = 1:maxClass
+            endI = meanFoldVecs(t) =;
+            test_labels(ind:endI) = t;
+            ind = endI+1;
+        end
             
+        startI = foldIndexes(q,t);
+        if t < maxClass
+            endI = foldIndexes(q,t+1)-1;
+        elseif q < Kfolds
+            endI = foldIndexes(q+1,1)-1;
+        else
+            endI = N;
+        end
+        test_labels(startI:endI) = t;
+    end
+    
+    for r = 1:maxClass
+        cov = reshape(Covs(r,:,:),[D,D]);
+        lik_k = MyGaussianMV(MsALL(r + (maxClass*(q-1)),:), cov, partition);
+        
+        test_prob(:,r) = lik_k * prior(r);
+    end
+    test_prob
+    [max_out,test_pred] = max(test_prob, [], 2);
+
+    CM = confusionmat(test_labels,test_pred);
+    save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
+end
   % For each <p> and <CovKind>
   %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
   %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs'); COMPLETE

@@ -90,6 +90,7 @@ end
 % INITIALISATION OF Ms AND Covs:
 C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
+MsALL = zeros(maxClass*Kfolds,D);
 
 for i = 1:Kfolds
     Ms = zeros(C,D);
@@ -122,6 +123,7 @@ for i = 1:Kfolds
         end
 
         Ms(j,:) = MyMean(vex);
+        MsALL(j+(maxClass*(i-1)),:) = MyMean(vex);
         % Ms for fold i, class j, successfully initialised and saved
         
         cov = regularize + MyCov(vex);
@@ -145,10 +147,52 @@ for i = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
 
-
 % CALCULATE CONFUSION MATRIX:
+prior = sum(classInd)./sum(sum(classInd));
+CM = zeros(maxClass,maxClass);
 
-            
+for q = 1:Kfolds
+    if q < Kfolds
+        rowNum = foldIndexes(q+1,1) - foldIndexes(q,1);
+        startI = foldIndexes(q,1);
+        endI = foldIndexes(q+1,1)-1;
+    else 
+        rowNum = N - foldIndexes(q,1) + 1;
+        startI = foldIndexes(q,1);
+        endI = N;
+    end
+    test_prob = zeros(rowNum,maxClass);
+    partition = partitX((startI:endI),:);
+    %test_labels = zeros(rowNum,1);
+    if q < Kfolds
+        ind = 1;
+        for t = 1:maxClass
+            endI = meanFoldVecs(t);
+            test_labels(ind:endI) = t;
+            ind = endI+1;
+        end
+    else
+        ind = 1;
+        for t = 1:maxClass
+            endI = meanFoldVecs(t) + remainders(t);
+            test_labels(ind:endI) = t;
+            ind = endI+1;
+        end
+    end
+    sum(test_labels ~= 0)
+    
+    for r = 1:maxClass
+        cov = reshape(Covs(r,:,:),[D,D]);
+        lik_k = MyGaussianMV(MsALL(r + (maxClass*(q-1)),:), cov, partition);
+        
+        test_prob(:,r) = lik_k * prior(r);
+    end
+    [max_out,test_pred] = max(test_prob, [], 2);
+    %cat(2,test_labels,test_pred)
+    
+    CM = confusionmat(test_labels,test_pred);
+    save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
+end
   % For each <p> and <CovKind>
   %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
   %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs'); COMPLETE

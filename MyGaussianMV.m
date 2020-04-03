@@ -5,7 +5,7 @@ function y = MyGaussianMV(mu, covar, X)
 %    covariance matrix COVAR.
 %
 % Copyright (c) Ian T Nabney (1996-2001) ****(Taken from LAB7)
-[N,D] = size(X);
+[n,d] = size(X);
 
 [j, k] = size(covar);
 % Check that the covariance matrix is the correct dimension
