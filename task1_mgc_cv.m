@@ -133,7 +133,7 @@ for i = 1:Kfolds
             CovsALL(j+(maxClass*(i-1)),:,:) = cov;
         elseif CovKind == 2
             Covs(j,:,:) = diag(diag(cov));
-            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
+            CovsALL(j+(maxClass*(i-1)),:,:) = diag(diag(cov));
         else
             covSharedSum = covSharedSum + MyCov(vex);
         end
