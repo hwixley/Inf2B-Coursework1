@@ -87,13 +87,14 @@ end
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % PMap successfully initialised and saved
 
-% INITIALISATION OF Ms AND Covs (CovKind == 1 or 2):
+% INITIALISATION OF Ms AND Covs:
 C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
 
 for i = 1:Kfolds
     Ms = zeros(C,D);
     Covs = zeros(C,D,D);
+    covSharedSum = 0;
     
     for j = 1:maxClass
         vex = zeros(Kfolds-1,D);
@@ -128,31 +129,25 @@ for i = 1:Kfolds
             Covs(j,:,:) = cov;
         elseif CovKind == 2
             Covs(j,:,:) = diag(diag(cov));
+        else
+            covSharedSum = covSharedSum + MyCov(vex);
         end
     end
+    
+    if CovKind == 3
+        cov = regularize + (covSharedSum/maxClass);
+        for k = 1:maxClass
+            Covs(k,:,:) = cov;
+        end
+    end
+        
     save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
-% INITIALISATION OF COVS FOR CovKind == 3
-if CovKind == 3
-    covSharedSum = 0;
-    for m = 1:maxClass
-        vex = zeros(Kfolds,D);
-        for n = 1:Kfolds
-            vex(n,:) = partitX(foldIndexes(n,m),:);
-        end
-        covSharedSum = covSharedSum + MyCov(vex);
-    end
-    sharedCov = regularize + (covSharedSum/maxClass);
 
-    for o = 1:Kfolds
-        Covs = zeros(C,D,D);
-        for p = 1:maxClass
-            Covs(p,:,:) = sharedCov;
-        end
-        save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,p,CovKind), 'Covs');
-    end
-end
+
+% CALCULATE CONFUSION MATRIX:
+
             
   % For each <p> and <CovKind>
   %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
