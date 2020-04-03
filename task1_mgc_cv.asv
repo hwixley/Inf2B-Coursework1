@@ -147,13 +147,10 @@ for i = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
 
-save('partitX.mat', 'partitX');
-save('foldIndexes.mat','foldIndexes');
-
-
 % CALCULATE CONFUSION MATRIX:
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
+labelSum = 0;
 
 for q = 1:Kfolds
     if q < Kfolds
@@ -165,35 +162,30 @@ for q = 1:Kfolds
         startI = foldIndexes(q,1);
         endI = N;
     end
-    
     test_prob = zeros(rowNum,maxClass);
     partition = partitX((startI:endI),:);
+    
     test_labels = zeros(rowNum,1);
     if q < Kfolds
-        ind = 1;
+        ind = foldIndexes(q,:)-labelSum;
         for t = 1:maxClass
-            endI = meanFoldVecs(t);
-            test_labels(ind:endI) = t;
-            ind = endI+1;
+            if t < maxClass
+                test_labels(ind(t):ind(t+1)) = t;
+            else
+                test_labels(ind(t):foldIndexes(q+1,1)-1-labelSum) = t;
+            end
         end
     else
-        ind = 1;
+        ind = foldIndexes(q,:)-labelSum;
         for t = 1:maxClass
-            endI = meanFoldVecs(t) =;
-            test_labels(ind:endI) = t;
-            ind = endI+1;
+            if t < maxClass
+                test_labels(ind(t):ind(t+1)) = t;
+            else
+                test_labels(ind(t):N) = t;
+            end
         end
-            
-        startI = foldIndexes(q,t);
-        if t < maxClass
-            endI = foldIndexes(q,t+1)-1;
-        elseif q < Kfolds
-            endI = foldIndexes(q+1,1)-1;
-        else
-            endI = N;
-        end
-        test_labels(startI:endI) = t;
     end
+    labelSum = length(test_labels);
     
     for r = 1:maxClass
         cov = reshape(Covs(r,:,:),[D,D]);
@@ -201,9 +193,10 @@ for q = 1:Kfolds
         
         test_prob(:,r) = lik_k * prior(r);
     end
-    test_prob
     [max_out,test_pred] = max(test_prob, [], 2);
-
+    %cat(2,test_labels,test_pred)
+    length(test_labels)
+    length(test_pred)
     CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
 end

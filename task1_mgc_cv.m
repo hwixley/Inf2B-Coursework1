@@ -150,6 +150,7 @@ end
 % CALCULATE CONFUSION MATRIX:
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
+labelSum = 0;
 
 for q = 1:Kfolds
     if q < Kfolds
@@ -163,23 +164,27 @@ for q = 1:Kfolds
     end
     test_prob = zeros(rowNum,maxClass);
     partition = partitX((startI:endI),:);
-    %test_labels = zeros(rowNum,1);
+    
+    test_labels = zeros(rowNum,1);
+    ind = foldIndexes(q,:)-labelSum;
     if q < Kfolds
-        ind = 1;
         for t = 1:maxClass
-            endI = meanFoldVecs(t);
-            test_labels(ind:endI) = t;
-            ind = endI+1;
+            if t < maxClass
+                test_labels(ind(t):ind(t+1)) = t;
+            else
+                test_labels(ind(t):foldIndexes(q+1,1)-1-labelSum) = t;
+            end
         end
     else
-        ind = 1;
         for t = 1:maxClass
-            endI = meanFoldVecs(t) + remainders(t);
-            test_labels(ind:endI) = t;
-            ind = endI+1;
+            if t < maxClass
+                test_labels(ind(t):ind(t+1)) = t;
+            else
+                test_labels(ind(t):N-labelSum) = t;
+            end
         end
     end
-    sum(test_labels ~= 0)
+    labelSum = labelSum + length(test_labels);
     
     for r = 1:maxClass
         cov = reshape(Covs(r,:,:),[D,D]);
@@ -189,7 +194,7 @@ for q = 1:Kfolds
     end
     [max_out,test_pred] = max(test_prob, [], 2);
     %cat(2,test_labels,test_pred)
-    
+
     CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
 end
