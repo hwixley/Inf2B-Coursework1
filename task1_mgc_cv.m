@@ -151,6 +151,9 @@ for i = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
 
+save('partitX.mat','partitX');
+
+
 % CALCULATE CONFUSION MATRIX:
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
@@ -193,7 +196,8 @@ for q = 1:Kfolds
     
     for r = 1:maxClass
         cov = reshape(CovsALL(r + (maxClass*(q-1)),:,:),[D,D]);
-        lik_k = MyGaussianMV(MsALL(r + (maxClass*(q-1)),:), cov, partition);
+        ms = MsALL(r + (maxClass*(q-1)),:);
+        lik_k = MyGaussianMV(ms, cov, partition);
         
         test_prob(:,r) = lik_k * prior(r);
     end
@@ -203,7 +207,7 @@ for q = 1:Kfolds
     CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
     
-    tots = sum(CM);
+    tots = sum(CM')';
     CM_average = CM./tots;
     CM_final = CM_final + CM_average;
 
