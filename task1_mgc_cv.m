@@ -88,13 +88,13 @@ end
   % PMap successfully initialised and saved
 
 % INITIALISATION OF Ms AND Covs (CovKind == 1 or 2):
-C = maxClass*Kfolds;
-Ms = zeros(C,D);
-Covs = zeros(C,D,D);
+C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
-cInd = 1;
 
 for i = 1:Kfolds
+    Ms = zeros(C,D);
+    Covs = zeros(C,D,D);
+    
     for j = 1:maxClass
         vex = zeros(Kfolds-1,D);
         vexInd = 1;
@@ -120,21 +120,18 @@ for i = 1:Kfolds
             end
         end
 
-        Ms(cInd,:) = MyMean(vex);
-        save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
+        Ms(j,:) = MyMean(vex);
         % Ms for fold i, class j, successfully initialised and saved
         
         cov = regularize + MyCov(vex);
         if CovKind == 1
-            Covs(cInd,:,:) = cov;
-            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+            Covs(j,:,:) = cov;
         elseif CovKind == 2
-            Covs(cInd,:,:) = diag(diag(cov));
-            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+            Covs(j,:,:) = diag(diag(cov));
         end
-        
-        cInd = cInd + 1;
     end
+    save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
+    save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
 % INITIALISATION OF COVS FOR CovKind == 3
 if CovKind == 3
@@ -148,12 +145,12 @@ if CovKind == 3
     end
     sharedCov = regularize + (covSharedSum/maxClass);
 
-    for o = 1:maxClass
-        for p = 1:Kfolds
-            ind = o + (p-1)*maxClass;
-            Covs(ind,:,:) = sharedCov;
-            save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,p,CovKind), 'Covs');
+    for o = 1:Kfolds
+        Covs = zeros(C,D,D);
+        for p = 1:maxClass
+            Covs(p,:,:) = sharedCov;
         end
+        save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,p,CovKind), 'Covs');
     end
 end
             
