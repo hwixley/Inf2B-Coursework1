@@ -151,10 +151,7 @@ for i = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
 end
 
-save('partitX.mat','partitX');
-
-
-% CALCULATE CONFUSION MATRIX:
+% CALCULATE CONFUSION MATRIX FOR EACH PARTITION P:
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
 labelSum = 0;
@@ -213,6 +210,7 @@ for q = 1:Kfolds
 
 end
 
+% CALCULATE FINAL PARTITION (AVERAGE CM OVER KFOLDS):
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
   % For each <p> and <CovKind>
