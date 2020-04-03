@@ -140,10 +140,10 @@ for i = 1:Kfolds
     end
     
     if CovKind == 3
-        cov = regularize + (covSharedSum/maxClass);
+        cov = regularize + (covSharedSum./double(maxClass));
         for k = 1:maxClass
             Covs(k,:,:) = cov;
-            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
+            CovsALL(k+(maxClass*(i-1)),:,:) = cov;
         end
     end
         
