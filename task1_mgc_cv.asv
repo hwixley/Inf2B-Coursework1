@@ -91,6 +91,8 @@ end
 C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
 MsALL = zeros(maxClass*Kfolds,D);
+CovsALL = zeros(maxClass*Kfolds,D,D);
+indC = 1;
 
 for i = 1:Kfolds
     Ms = zeros(C,D);
@@ -129,8 +131,10 @@ for i = 1:Kfolds
         cov = regularize + MyCov(vex);
         if CovKind == 1
             Covs(j,:,:) = cov;
+            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
         elseif CovKind == 2
             Covs(j,:,:) = diag(diag(cov));
+            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
         else
             covSharedSum = covSharedSum + MyCov(vex);
         end
@@ -140,7 +144,9 @@ for i = 1:Kfolds
         cov = regularize + (covSharedSum/maxClass);
         for k = 1:maxClass
             Covs(k,:,:) = cov;
-        end
+            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
+         
+   indC = indC + 1;        end
     end
         
     save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
@@ -151,6 +157,7 @@ end
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
 labelSum = 0;
+CM_final = CM;
 
 for q = 1:Kfolds
     if q < Kfolds
@@ -166,8 +173,8 @@ for q = 1:Kfolds
     partition = partitX((startI:endI),:);
     
     test_labels = zeros(rowNum,1);
+    ind = foldIndexes(q,:)-labelSum;
     if q < Kfolds
-        ind = foldIndexes(q,:)-labelSum;
         for t = 1:maxClass
             if t < maxClass
                 test_labels(ind(t):ind(t+1)) = t;
@@ -176,30 +183,36 @@ for q = 1:Kfolds
             end
         end
     else
-        ind = foldIndexes(q,:)-labelSum;
         for t = 1:maxClass
             if t < maxClass
                 test_labels(ind(t):ind(t+1)) = t;
             else
-                test_labels(ind(t):N) = t;
+                test_labels(ind(t):N-labelSum) = t;
             end
         end
     end
-    labelSum = length(test_labels);
+    labelSum = labelSum + length(test_labels);
     
     for r = 1:maxClass
-        cov = reshape(Covs(r,:,:),[D,D]);
+        cov = reshape(CovsALL(r + (maxClass*(q-1)),:,:),[D,D])
         lik_k = MyGaussianMV(MsALL(r + (maxClass*(q-1)),:), cov, partition);
         
         test_prob(:,r) = lik_k * prior(r);
     end
     [max_out,test_pred] = max(test_prob, [], 2);
     %cat(2,test_labels,test_pred)
-    length(test_labels)
-    length(test_pred)
+
     CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
+    
+    tots = sum(CM);
+    CM_average = CM./tots;
+    CM_final = CM_final + CM_average;
+
 end
+
+CM = CM_final/Kfolds;
+save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
   % For each <p> and <CovKind>
   %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
   %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs'); COMPLETE
