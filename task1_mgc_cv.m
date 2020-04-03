@@ -151,6 +151,7 @@ end
 prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
 labelSum = 0;
+CM_final = CM;
 
 for q = 1:Kfolds
     if q < Kfolds
@@ -196,8 +197,12 @@ for q = 1:Kfolds
     %cat(2,test_labels,test_pred)
 
     CM = confusionmat(test_labels,test_pred);
+    CM_final = CM_final + CM;
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
 end
+
+CM = (CM_final/Kfolds)/N;
+save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
   % For each <p> and <CovKind>
   %  save('t1_mgc_<Kfolds>cv<p>_Ms.mat', 'Ms'); COMPLETE
   %  save('t1_mgc_<Kfolds>cv<p>_ck<CovKind>_Covs.mat', 'Covs'); COMPLETE
