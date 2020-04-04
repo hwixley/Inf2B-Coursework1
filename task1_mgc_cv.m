@@ -26,19 +26,17 @@ for a = 1:N
 end
 
 % loop to find number of samples for each class, repr. by classNum
-classNum = zeros(maxClass,1);
 classInd = zeros(N,maxClass);
 for b = 1:maxClass
-    classNum(b) = sum(Y == b);
     classInd(:,b) = Y == b;
 end
 
 % loop to find mean number of vectors for a given class in a partition
-meanFoldVecs = zeros(maxClass,1);
-remainders = zeros(maxClass,1);
+meanFoldVecs = zeros(1,maxClass);
+remainders = zeros(1,maxClass);
 for c = 1:maxClass
-    meanFoldVecs(c) = floor(classNum(c)/Kfolds);
-    remainders(c) = rem(classNum(c),Kfolds);
+    meanFoldVecs(c) = floor(sum(classInd(:,c))/Kfolds);
+    remainders(c) = rem(sum(classInd(:,c)),Kfolds);
 end
 
 %INITIALISATION OF PMap:
@@ -52,6 +50,7 @@ for d = 1:Kfolds-1
     for e = 1:maxClass
         foldIndexes(d,e) = pXI;
         numVecs = meanFoldVecs(e);
+        
         for f = lastClassIndex(e):N
             if classInd(f,e) == 1
                 partitX(pXI,:) = X(f,:);
@@ -90,8 +89,6 @@ end
 % INITIALISATION OF Ms AND Covs:
 C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
-MsALL = zeros(maxClass*Kfolds,D);
-CovsALL = zeros(maxClass*Kfolds,D,D);
 
 for i = 1:Kfolds
     Ms = zeros(C,D);
@@ -122,18 +119,15 @@ for i = 1:Kfolds
                 vexInd = vexInd + 1;
             end
         end
-
+        
         Ms(j,:) = MyMean(vex);
-        MsALL(j+(maxClass*(i-1)),:) = MyMean(vex);
         % Ms for fold i, class j, successfully initialised and saved
         
         cov = regularize + MyCov(vex);
         if CovKind == 1
             Covs(j,:,:) = cov;
-            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
         elseif CovKind == 2
             Covs(j,:,:) = diag(diag(cov));
-            CovsALL(j+(maxClass*(i-1)),:,:) = diag(diag(cov));
         else
             covSharedSum = covSharedSum + MyCov(vex);
         end
@@ -143,7 +137,6 @@ for i = 1:Kfolds
         cov = regularize + (covSharedSum./double(maxClass));
         for k = 1:maxClass
             Covs(k,:,:) = cov;
-            CovsALL(k+(maxClass*(i-1)),:,:) = cov;
         end
     end
         
@@ -152,12 +145,13 @@ for i = 1:Kfolds
 end
 
 % CALCULATE CONFUSION MATRIX FOR EACH PARTITION P:
-prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
 labelSum = 0;
 CM_final = CM;
 
 for q = 1:Kfolds
+    prior = zeros(1,maxClass);
+    
     if q < Kfolds
         rowNum = foldIndexes(q+1,1) - foldIndexes(q,1);
         startI = foldIndexes(q,1);
@@ -169,10 +163,22 @@ for q = 1:Kfolds
     end
         
     test_prob = zeros(rowNum,maxClass);
-    partition = partitX((startI:endI),:);
+    partition = partitX((startI:endI),:); 
+    
+    for p = 1:maxClass
+        if p < maxClass
+            prior(p) = foldIndexes(q,p+1)-foldIndexes(q,p);
+        elseif q < Kfolds
+            prior(p) = foldIndexes(q+1,1)-foldIndexes(q,p);
+        else
+            prior(p) = N-foldIndexes(q,p)+1;
+        end
+    end
+    prior = prior./sum(prior);
     
     test_labels = zeros(rowNum,1);
     ind = foldIndexes(q,:)-labelSum;
+    
     if q < Kfolds
         for t = 1:maxClass
             if t < maxClass
@@ -192,13 +198,54 @@ for q = 1:Kfolds
     end
     labelSum = labelSum + length(test_labels);
     
+    covShared = 0;
     for r = 1:maxClass
-        cov = reshape(CovsALL(r + (maxClass*(q-1)),:,:),[D,D]);
-        ms = MsALL(r + (maxClass*(q-1)),:);
-        lik_k = MyGaussianMV(ms, cov, partition);
+        startI = foldIndexes(q,r) - foldIndexes(q,1) + 1;
+        if r < maxClass
+            endI = foldIndexes(q,r+1) - foldIndexes(q,1);
+        elseif q < Kfolds
+            endI = foldIndexes(q+1,1) - foldIndexes(q,1);
+        else
+            endI = N - foldIndexes(q,1) + 1;
+        end
+        partitXC = partition((startI:endI),:);
         
-        test_prob(:,r) = lik_k * prior(r);
+        ms = MyMean(partitXC);
+        cov = MyCov(partitXC);
+        if CovKind ~= 3
+            cov = regularize + cov;
+            if CovKind == 2
+                cov = diag(diag(cov));
+            end         
+            
+            lik_k = MyGaussianMV(ms, cov, partition);      
+            test_prob(:,r) = lik_k * prior(r);
+        else
+            covShared = covShared + cov;
+        end
     end
+    
+    if CovKind == 3
+        cov = regularize + (covShared./double(maxClass));
+        
+        for w = 1:maxClass
+            startI = foldIndexes(q,w) - foldIndexes(q,1) + 1;
+            if w < maxClass
+                endI = foldIndexes(q,w+1) - foldIndexes(q,1);
+            elseif q < Kfolds
+                endI = foldIndexes(q+1,1) - foldIndexes(q,1);
+            else
+                endI = N - foldIndexes(q,1) + 1;
+            end
+            partitXC = partition((startI:endI),:);
+            
+            ms = MyMean(partitXC);
+            
+            lik_k = MyGaussianMV(ms, cov, partition);      
+            test_prob(:,w) = lik_k * prior(w);
+        end
+    end
+    
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = confusionmat(test_labels,test_pred);
@@ -213,5 +260,4 @@ end
 % CALCULATE FINAL PARTITION (AVERAGE CM OVER KFOLDS):
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
-
 end
