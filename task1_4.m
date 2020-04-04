@@ -1,7 +1,7 @@
 %
 % Versin 0.9  (HS 06/03/2020)
 %
-function task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds)
+function task1_4(X, Y, CovKind, epsilon, Kfolds)
 % Input:
 %  X : N-by-D matrix of feature vectors (double)
 %  Y : N-by-1 label vector (int32)
@@ -90,8 +90,8 @@ end
 % INITIALISATION OF Ms AND Covs:
 C = maxClass;
 regularize = diag(epsilon.*ones(1,D)); % regularisation diagonal matrix
-MsALL = zeros(maxClass*Kfolds,D);
-CovsALL = zeros(maxClass*Kfolds,D,D);
+means = zeros(Kfolds,maxClass,D);
+covzz = zeros(Kfolds,maxClass,D,D);
 
 for i = 1:Kfolds
     Ms = zeros(C,D);
@@ -122,18 +122,15 @@ for i = 1:Kfolds
                 vexInd = vexInd + 1;
             end
         end
-
+        
         Ms(j,:) = MyMean(vex);
-        MsALL(j+(maxClass*(i-1)),:) = MyMean(vex);
         % Ms for fold i, class j, successfully initialised and saved
         
         cov = regularize + MyCov(vex);
         if CovKind == 1
             Covs(j,:,:) = cov;
-            CovsALL(j+(maxClass*(i-1)),:,:) = cov;
         elseif CovKind == 2
             Covs(j,:,:) = diag(diag(cov));
-            CovsALL(j+(maxClass*(i-1)),:,:) = diag(diag(cov));
         else
             covSharedSum = covSharedSum + MyCov(vex);
         end
@@ -143,12 +140,14 @@ for i = 1:Kfolds
         cov = regularize + (covSharedSum./double(maxClass));
         for k = 1:maxClass
             Covs(k,:,:) = cov;
-            CovsALL(k+(maxClass*(i-1)),:,:) = cov;
         end
     end
         
     save(sprintf('t1_mgc_%dcv%d_ck%d_Covs.mat',Kfolds,i,CovKind), 'Covs');
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,i), 'Ms');
+    
+    means(i,:,:) = Ms;
+    covzz(i,:,:,:) = Covs;
 end
 
 % CALCULATE CONFUSION MATRIX FOR EACH PARTITION P:
@@ -156,6 +155,7 @@ prior = sum(classInd)./sum(sum(classInd));
 CM = zeros(maxClass,maxClass);
 labelSum = 0;
 CM_final = CM;
+covSS = 0;
 
 for q = 1:Kfolds
     if q < Kfolds
@@ -191,14 +191,55 @@ for q = 1:Kfolds
         end
     end
     labelSum = labelSum + length(test_labels);
+    meanFold = reshape(means(q,:,:),[D,maxClass]);
+    covFold = reshape(covzz(q,:,:,:),[maxClass,D,D]);
     
     for r = 1:maxClass
-        cov = reshape(CovsALL(r + (maxClass*(q-1)),:,:),[D,D]);
-        ms = MsALL(r + (maxClass*(q-1)),:);
-        lik_k = MyGaussianMV(ms, cov, partition);
+        startI = foldIndexes(q,r) - foldIndexes(q,1) + 1;
+        if r < maxClass
+            endI = foldIndexes(q,r+1) - foldIndexes(q,1);
+        elseif q < Kfolds
+            endI = foldIndexes(q+1,1) - foldIndexes(q,1);
+        else
+            endI = N - foldIndexes(q,1) + 1;
+        end
+        partitXC = partition((startI:endI),:);
         
-        test_prob(:,r) = lik_k * prior(r);
+        ms = meanFold(:,r)';
+        cov = reshape(covFold(r,:,:),[D,D]);
+        if CovKind ~= 3
+            if CovKind == 2
+                cov = diag(diag(cov));
+            end         
+            
+            lik_k = MyGaussianMV(ms, cov, partitXC);      
+            test_prob(startI:endI,r) = lik_k * prior(r);
+        else
+            covSS = covSS + covFold(r,:,:);
+        end
     end
+    
+    if CovKind == 3
+        %cov = covSS./double(maxClass);
+        
+        for w = 1:maxClass
+            startI = foldIndexes(q,w) - foldIndexes(q,1) + 1;
+            if w < maxClass
+                endI = foldIndexes(q,w+1) - foldIndexes(q,1);
+            elseif q < Kfolds
+                endI = foldIndexes(q+1,1) - foldIndexes(q,1);
+            else
+                endI = N - foldIndexes(q,1) + 1;
+            end
+            partitXC = partition((startI:endI),:);
+            
+            ms = meanFold(:,w)';
+            
+            lik_k = MyGaussianMV(ms, cov, partitXC);      
+            test_prob(startI:endI,w) = lik_k * prior(w);
+        end
+    end
+    
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = confusionmat(test_labels,test_pred);
