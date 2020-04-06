@@ -185,11 +185,10 @@ for p = 1:Kfolds
             test_prob(:,c) = lik_k*prior(c);
         end
     end
-    size(test_prob)
     
     [~,test_pred] = max(test_prob, [], 2);
 
-    CM = confusionmat(test_labels,test_pred)
+    CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
     
     tots = sum(CM,2);
