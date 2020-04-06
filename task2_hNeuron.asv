@@ -13,13 +13,7 @@ function [Y] = task2_hNeuron(W, X)
 Y = zeros(N,1);
 
 for i = 1:N
-    a = W'.*X(i,:)
-    
-    if a > 0
-        Y(i) = 1;
-    else
-        Y(i) = 0;
-    end
+    a = W'.*X(i,:);
 end
     
 end

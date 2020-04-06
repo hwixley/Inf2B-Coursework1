@@ -69,12 +69,13 @@ end
 for g = 1:maxClass
     foldIndexes(Kfolds,g) = pXI;
     numVecs = meanFoldVecs(g) + remainders(g);
+    
     for h = lastClassIndex(g):N
         if classInd(h,g) == 1
-            partitX(pXI,:) = X(f,:);
+            partitX(pXI,:) = X(h,:);
             pXI = pXI + 1;
             
-            PMap(h) = d;
+            PMap(h) = maxClass;
             numVecs = numVecs -1;
             if numVecs == 0
                 break
@@ -163,7 +164,7 @@ for q = 1:Kfolds
     end
         
     test_prob = zeros(rowNum,maxClass);
-    partition = partitX((startI:endI),:); 
+    partition = partitX((startI:endI),:);
     
     for p = 1:maxClass
         if p < maxClass
@@ -212,13 +213,14 @@ for q = 1:Kfolds
         
         ms = MyMean(partitXC);
         cov = MyCov(partitXC);
+
         if CovKind ~= 3
             cov = regularize + cov;
             if CovKind == 2
                 cov = diag(diag(cov));
             end         
+            lik_k = MyGaussianMV(ms, cov, partition);
             
-            lik_k = MyGaussianMV(ms, cov, partition);      
             test_prob(:,r) = lik_k * prior(r);
         else
             covShared = covShared + cov;
@@ -241,7 +243,7 @@ for q = 1:Kfolds
             
             ms = MyMean(partitXC);
             
-            lik_k = MyGaussianMV(ms, cov, partition);     
+            lik_k = MyGaussianMV(ms, cov, partition);   
             test_prob(:,w) = lik_k * prior(w);
         end
     end
