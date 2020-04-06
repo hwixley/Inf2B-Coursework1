@@ -75,7 +75,7 @@ for g = 1:maxClass
             partitX(pXI,:) = X(h,:);
             pXI = pXI + 1;
             
-            PMap(h) = maxClass;
+            PMap(h) = Kfolds;
             numVecs = numVecs -1;
             if numVecs == 0
                 break
