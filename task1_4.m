@@ -129,6 +129,7 @@ for p = 1:Kfolds
     test_prob = zeros(sum(PMap == p),maxClass);
     indS = 1;
     covShared = 0;
+    meanShared = zeros(maxClass,D);
     
     partitionSamples = zeros(sum(PMap == p),D);
     sampleIndexes = find(PMap == p); 
@@ -142,7 +143,7 @@ for p = 1:Kfolds
         validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
         prior = sum(validSamples == 2)/sum(PMap == p);
         indE = indS - 1 + prior;
-        test_labels(indS:indE,:) = c;
+        test_labels((indS:indE),:) = c;
         indS = indE + 1;
         
         vexIndexes = find(validSamples == 2);
@@ -155,8 +156,28 @@ for p = 1:Kfolds
         mu = MyMean(vex);
         cov = MyCov(vex);
         
-        lik_k = MyGaussianMV(mu,cov,partitionSamples);
-        test_prob(:,c) = lik_k*prior;       
+        if CovKind ~= 3
+            cov = regularize + cov;
+        
+            if CovKind == 2
+                cov = diag(diag(cov));
+            end
+            
+            lik_k = MyGaussianMV(mu,cov,partitionSamples);
+            test_prob(:,c) = lik_k*prior;    
+        else
+            covShared = covShared + cov;
+            meanShared(c,:) = mu;
+        end   
+    end
+    if CovKind == 3
+        cov  = regularize + (covShared./double(maxClass));
+        for c = 1:maxClass
+            mu = meanShared(c,:);
+            
+            lik_k = MyGaussianMV(mu,cov,partitionSamples);
+            test_prob(:,c) = lik_k*prior;
+        end
     end
     
     [~,test_pred] = max(test_prob, [], 2);

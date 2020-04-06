@@ -121,26 +121,64 @@ for p = 1:Kfolds
 end
 
 
+CM_final = zeros(maxClass,maxClass);
+
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
     test_labels = zeros(sum(PMap == p),1);
-    ind = 1;
+    test_prob = zeros(sum(PMap == p),maxClass);
+    indS = 1;
+    covShared = 0;
     
-    for f = 1:maxClass
+    partitionSamples = zeros(sum(PMap == p),D);
+    sampleIndexes = find(PMap == p); 
+    for v = 1:length(sampleIndexes)
+        elem = sampleIndexes(v);
+        partitionSamples(v,:) = X(elem,:);
+    end
+    
+    
+    for c = 1:maxClass
         validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
-        priorProb = sum(validSamples == 2);  
-        test_labels(ind:(ind-1+priorProb),:) = f;
-
-        vexIndexes = find(validSamples == 2);
-        vex = zeros(length(vexIndexes),D);
+        prior = sum(validSamples == 2)/sum(PMap == p);
+        indE = indS - 1 + prior;
+        test_labels((indS:indE),:) = c;
+        indS = indE + 1;
         
+        vexIndexes = find(validSamples == 2);
+        vex = zeros(length(vexIndexes),D);   
         for v = 1:length(vexIndexes)
             elem = vexIndexes(v);
             vex(v,:) = X(elem,:);
         end
         
+        mu = MyMean(vex);
+        cov = MyCov(vex);
         
-    end    
+        if CovKind ~= 3
+            cov = regularize + cov;
+        
+            if CovKind == 2
+                cov = diag(diag(cov));
+            end
+            
+            lik_k = MyGaussianMV(mu,cov,partitionSamples);
+            test_prob(:,c) = lik_k*prior;    
+        else
+            covShared = covShared + cov;
+        end   
+    end
+    
+    [~,test_pred] = max(test_prob, [], 2);
+
+    CM = confusionmat(test_labels,test_pred);
+    save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
+    
+    tots = sum(CM,2);
+    CM_average = CM./tots;
+    CM_final = CM_final + CM_average;
 end
+CM = CM_final/Kfolds;
+save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
 
 end
