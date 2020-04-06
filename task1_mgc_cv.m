@@ -103,21 +103,43 @@ for i = 1:Kfolds
         if i > 1
             for k = 1:(i-1)
                 ind = foldIndexes(k,j);
-                vex(vexInd,:) = partitX(ind,:);
-                vexInd = vexInd + 1;
+                if j < maxClass
+                    endI = foldIndexes(k,j+1)-1;
+                else
+                    endI = foldIndexes(k+1,1)-1;
+                end
+                vexEnd = vexInd + endI-ind; 
+                vex(vexInd:vexEnd,:) = partitX(ind:endI,:);
+                vexInd = vexEnd + 1;
             end
             if i < Kfolds
                 for l = (i+1):Kfolds
                     ind = foldIndexes(l,j);
-                    vex(vexInd,:) = partitX(ind,:);
-                    vexInd = vexInd + 1;
+                    if j < maxClass
+                        endI = foldIndexes(l,j+1)-1;
+                    elseif l < Kfolds
+                        endI = foldIndexes(l+1,1)-1;
+                    else
+                        endI = N;
+                    end
+                    vexEnd = vexInd + endI-ind; 
+                    vex(vexInd:vexEnd,:) = partitX(ind:endI,:);
+                    vexInd = vexEnd + 1;
                 end
             end
         else
             for k = 2:Kfolds
                 ind = foldIndexes(k,j);
-                vex(vexInd,:) = partitX(ind,:);
-                vexInd = vexInd + 1;
+                if j < maxClass
+                    endI = foldIndexes(k,j+1)-1;
+                elseif k < Kfolds
+                    endI = foldIndexes(k+1,1)-1;
+                else
+                	endI = N;
+                end
+                vexEnd = vexInd + endI-ind; 
+                vex(vexInd:vexEnd,:) = partitX(ind:endI,:);
+                vexInd = vexEnd + 1;
             end
         end
         

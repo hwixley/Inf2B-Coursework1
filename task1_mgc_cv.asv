@@ -66,16 +66,16 @@ for d = 1:Kfolds-1
         end
     end
 end
-partitX(1:lastClassIndex(10)+1,:)
 for g = 1:maxClass
     foldIndexes(Kfolds,g) = pXI;
     numVecs = meanFoldVecs(g) + remainders(g);
+    
     for h = lastClassIndex(g):N
         if classInd(h,g) == 1
-            partitX(pXI,:) = X(f,:);
+            partitX(pXI,:) = X(h,:);
             pXI = pXI + 1;
             
-            PMap(h) = d;
+            PMap(h) = Kfolds;
             numVecs = numVecs -1;
             if numVecs == 0
                 break
@@ -103,12 +103,19 @@ for i = 1:Kfolds
         if i > 1
             for k = 1:(i-1)
                 ind = foldIndexes(k,j);
-                vex(vexInd,:) = partitX(ind,:);
+                endI = foldIndexes(k,j+1)-1;
+                vexEnd = vexInd + endI-ind; 
+                vex(vexInd:vexEnd,:) = partitX(ind:endI,:);
                 vexInd = vexInd + 1;
             end
             if i < Kfolds
                 for l = (i+1):Kfolds
                     ind = foldIndexes(l,j);
+                    if j < maxClass
+                        endI = foldIndexes(k,j+1)-1;
+                    else
+                        endI = foldIndexes(k+1,1)
+                    vexEnd = vexInd + endI-ind; 
                     vex(vexInd,:) = partitX(ind,:);
                     vexInd = vexInd + 1;
                 end
