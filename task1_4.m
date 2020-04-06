@@ -125,26 +125,30 @@ CM_final = zeros(maxClass,maxClass);
 
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
+    prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
     test_prob = zeros(sum(PMap == p),maxClass);
-    indS = 1;
     covShared = 0;
     meanShared = zeros(maxClass,D);
     
+    indP = 1;
     partitionSamples = zeros(sum(PMap == p),D);
-    sampleIndexes = find(PMap == p); 
-    for v = 1:length(sampleIndexes)
-        elem = sampleIndexes(v);
-        partitionSamples(v,:) = X(elem,:);
-    end
+    for c = 1:maxClass
+        validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
+        vexIndexes = find(validSamples == 2);
+          
+        for v = 1:length(vexIndexes)
+            elem = vexIndexes(v);
+            partitionSamples(indP,:) = X(elem,:);
+            test_labels(indP) = c;
+            indP = indP + 1;
+        end
+    end    
     
     
     for c = 1:maxClass
         validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
-        prior = sum(validSamples == 2)/sum(PMap == p);
-        indE = indS - 1 + prior;
-        test_labels((indS:indE),:) = c;
-        indS = indE + 1;
+        prior(c) = sum(validSamples == 2)/sum(PMap == p);
         
         vexIndexes = find(validSamples == 2);
         vex = zeros(length(vexIndexes),D);   
@@ -164,7 +168,7 @@ for p = 1:Kfolds
             end
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior;    
+            test_prob(:,c) = lik_k*prior(c);    
         else
             covShared = covShared + cov;
             meanShared(c,:) = mu;
@@ -176,13 +180,14 @@ for p = 1:Kfolds
             mu = meanShared(c,:);
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior;
+            test_prob(:,c) = lik_k*prior(c);
         end
     end
+    size(test_prob)
     
     [~,test_pred] = max(test_prob, [], 2);
 
-    CM = confusionmat(test_labels,test_pred);
+    CM = confusionmat(test_labels,test_pred)
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
     
     tots = sum(CM,2);
