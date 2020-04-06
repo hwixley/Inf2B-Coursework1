@@ -36,6 +36,7 @@ for c = 1:maxClass
     remainders(c) = rem(sum(classInd(:,c)),Kfolds);
 end
 
+%CALCULATION OF PMap
 PMap = zeros(N,1);
 lastCI = ones(maxClass,1);
 ALLMap = zeros(N,2); %col.1 = partition #, col.2 = class #
@@ -75,7 +76,8 @@ end
 
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % PMap successfully initialised and saved
-  
+
+%CALCULATION OF Ms & Covs  
 C = maxClass; 
 regularize = diag(ones(1,D).*epsilon);
   
@@ -120,7 +122,7 @@ for p = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,p), 'Ms');     
 end
 
-
+%CALCULATION OF CONFUSION MATRICES
 CM_final = zeros(maxClass,maxClass);
 
 for p = 1:Kfolds
