@@ -241,11 +241,10 @@ for q = 1:Kfolds
             
             ms = MyMean(partitXC);
             
-            lik_k = MyGaussianMV(ms, cov, partition);      
+            lik_k = MyGaussianMV(ms, cov, partition);     
             test_prob(:,w) = lik_k * prior(w);
         end
     end
-    
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = confusionmat(test_labels,test_pred);
