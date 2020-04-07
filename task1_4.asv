@@ -36,6 +36,7 @@ for c = 1:maxClass
     remainders(c) = rem(sum(classInd(:,c)),Kfolds);
 end
 
+%CALCULATION OF PMap
 PMap = zeros(N,1);
 lastCI = ones(maxClass,1);
 ALLMap = zeros(N,2); %col.1 = partition #, col.2 = class #
@@ -75,7 +76,8 @@ end
 
   save(sprintf('t1_mgc_%dcv_PMap.mat',Kfolds), 'PMap');
   % PMap successfully initialised and saved
-  
+
+%CALCULATION OF Ms & Covs  
 C = maxClass; 
 regularize = diag(ones(1,D).*epsilon);
   
@@ -120,15 +122,16 @@ for p = 1:Kfolds
     save(sprintf('t1_mgc_%dcv%d_Ms.mat',Kfolds,p), 'Ms');     
 end
 
-
+%CALCULATION OF CONFUSION MATRICES
 CM_final = zeros(maxClass,maxClass);
 
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
     prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
+    post_probs = zeros(sum(PMap == p),D);
+    post_pClasses = zeros(sum(PMap == p),maxClass);
     test_prob = zeros(sum(PMap == p),maxClass);
-    indS = 1;
     covShared = 0;
     meanShared = zeros(maxClass,D);
     
@@ -141,7 +144,7 @@ for p = 1:Kfolds
         for v = 1:length(vexIndexes)
             elem = vexIndexes(v);
             partitionSamples(indP,:) = X(elem,:);
-            test_labels(indP) = 
+            test_labels(indP) = c;
             indP = indP + 1;
         end
     end    
@@ -150,11 +153,6 @@ for p = 1:Kfolds
     for c = 1:maxClass
         validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
         prior(c) = sum(validSamples == 2)/sum(PMap == p);
-        indE = indS - 1 + sum(validSamples == 2);
-        for t = indS:indE
-            test_labels(t,:) = c;
-        end
-        indS = indE + 1;
         
         vexIndexes = find(validSamples == 2);
         vex = zeros(length(vexIndexes),D);   
@@ -165,6 +163,35 @@ for p = 1:Kfolds
         
         mu = MyMean(vex);
         cov = MyCov(vex);
+        post_vex = zeros(length(vexIndexes),D);
+        for s = 1:length(vexIndexes)
+            post_vex(s,:) = post_prob(vex,prior(c),vex(s,:));
+        end
+        for s = 1:sum(PMap == p)
+            post_probs(s,:) = post_prob(vex,prior(c),partitionSamples(s,:));
+            if c == 5 || c == 6 || c == 7 || c == 8
+                post_probs(s,:)
+            end
+        end
+%         if c == 5 || c == 6 || c == 7 || c == 8
+%             post_probs
+%         end
+        post_probs = post_probs - MyMean(post_vex);
+%         if c == 5 || c == 6 || c == 7 || c == 8
+%             post_probs
+%             post_vex
+%             MyMean(post_vex)
+%         end
+
+        if isnan(post_probs) ~= zeros(sum(PMap == p),D)
+            %post_probs
+            c
+        end
+        post_pClasses(:,c) = MyMean(post_probs')';
+        if isnan(post_pClasses(:,c)) ~= zeros(sum(PMap == p),1)
+            %sum(isnan(post_pClasses(:,c)))
+            c
+        end
         
         if CovKind ~= 3
             cov = regularize + cov;
@@ -174,7 +201,8 @@ for p = 1:Kfolds
             end
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior(c);    
+            %test_prob(:,c) = lik_k*prior(c); 
+            test_prob(:,c) = lik_k.*post_pClasses(:,c);
         else
             covShared = covShared + cov;
             meanShared(c,:) = mu;
@@ -186,14 +214,14 @@ for p = 1:Kfolds
             mu = meanShared(c,:);
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior(c);
+            %test_prob(:,c) = lik_k*prior(c); 
+            test_prob(:,c) = lik_k.*post_pClasses(:,c);
         end
     end
-    size(test_prob)
     
     [~,test_pred] = max(test_prob, [], 2);
 
-    CM = confusionmat(test_labels,test_pred)
+    CM = confusionmat(test_labels,test_pred);
     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
     
     tots = sum(CM,2);

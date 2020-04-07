@@ -129,6 +129,8 @@ for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
     prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
+    post_probs = zeros(sum(PMap == p),D);
+    post_pClasses = zeros(sum(PMap == p),maxClass);
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
     meanShared = zeros(maxClass,D);
@@ -161,6 +163,16 @@ for p = 1:Kfolds
         
         mu = MyMean(vex);
         cov = MyCov(vex);
+        post_vex = zeros(length(vexIndexes),D);
+        for s = 1:length(vexIndexes)
+            post_vex(s,:) = post_prob(vex,prior(c),vex(s,:));
+        end
+        for s = 1:sum(PMap == p)
+            post_probs(s,:) = post_prob(vex,prior(c),partitionSamples(s,:));
+        end
+        post_probs = post_probs - MyMean(post_vex);
+        post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
+        cat(2,sum(post_probs,2),abs(sum(post_probs,2)),bsxfun(@minus,abs(sum(post_probs,2)),1000),post_pClasses(:,c))
         
         if CovKind ~= 3
             cov = regularize + cov;
@@ -170,7 +182,8 @@ for p = 1:Kfolds
             end
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior(c);    
+            %test_prob(:,c) = lik_k*prior(c); 
+            test_prob(:,c) = lik_k.*post_pClasses(:,c);
         else
             covShared = covShared + cov;
             meanShared(c,:) = mu;
@@ -182,7 +195,8 @@ for p = 1:Kfolds
             mu = meanShared(c,:);
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            test_prob(:,c) = lik_k*prior(c);
+            %test_prob(:,c) = lik_k*prior(c); 
+            test_prob(:,c) = lik_k.*post_pClasses(:,c);
         end
     end
     
