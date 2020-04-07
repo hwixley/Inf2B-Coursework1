@@ -134,6 +134,7 @@ for p = 1:Kfolds
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
     meanShared = zeros(maxClass,D);
+    vexShared = zeros(maxClass);
     
     indP = 1;
     partitionSamples = zeros(sum(PMap == p),D);
@@ -163,23 +164,24 @@ for p = 1:Kfolds
         
         mu = MyMean(vex);
         cov = MyCov(vex);
-        post_vex = zeros(length(vexIndexes),D);
-        for s = 1:length(vexIndexes)
-            post_vex(s,:) = post_prob(vex,prior(c),vex(s,:));
-        end
-        for s = 1:sum(PMap == p)
-            post_probs(s,:) = post_prob(vex,prior(c),partitionSamples(s,:));
-        end
-        post_probs = post_probs - MyMean(post_vex);
-        post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
-        cat(2,sum(post_probs,2),abs(sum(post_probs,2)),bsxfun(@minus,abs(sum(post_probs,2)),1000),post_pClasses(:,c))
-        
+             
         if CovKind ~= 3
             cov = regularize + cov;
         
             if CovKind == 2
                 cov = diag(diag(cov));
             end
+            
+            post_vex = zeros(length(vexIndexes),D);
+            for s = 1:length(vexIndexes)
+                post_vex(s,:) = post_prob(vex,prior(c),cov,mu,vex(s,:));
+            end
+            for s = 1:sum(PMap == p)
+                post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
+            end
+            post_probs = post_probs - MyMean(post_vex);
+            post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
+            
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
@@ -193,13 +195,32 @@ for p = 1:Kfolds
         cov  = regularize + (covShared./double(maxClass));
         for c = 1:maxClass
             mu = meanShared(c,:);
+                     
+            validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
+            vexIndexes = find(validSamples == 2);
+            vex = zeros(length(vexIndexes),D);   
+            for v = 1:length(vexIndexes)
+                elem = vexIndexes(v);
+                vex(v,:) = X(elem,:);
+            end
+            
+            post_vex = zeros(length(vexIndexes),D);
+            for s = 1:length(vexIndexes)
+                post_vex(s,:) = post_prob(vex,prior(c),cov,mu,vex(s,:));
+            end
+            for s = 1:sum(PMap == p)
+                post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
+            end
+            post_probs = post_probs - MyMean(post_vex);
+            post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
+            
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
             test_prob(:,c) = lik_k.*post_pClasses(:,c);
         end
     end
-    
+        
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = confusionmat(test_labels,test_pred);

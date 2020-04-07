@@ -1,7 +1,7 @@
-function pp = post_prob(samplesK,priorK,cov,mu,x)
+function pp = post_prob(samplesK,priorK,x)
 [~,D] = size(x);
 
-pp = -log(2*pi)-log(MyVar(samplesK)) - ((x-mu).^2)./MyVar(samplesK);
+pp = -log(2*pi)-log(MyVar(samplesK)) - ((x-MyMean(samplesK)).^2)./MyVar(samplesK);
 pp = (1/2*pp) + priorK;
 
 if sum(isnan(pp)) ~= 0
@@ -10,5 +10,7 @@ if sum(isnan(pp)) ~= 0
         pp(indexes(i)) = 0;
     end
 end
+
+pp = -1/2*(x-MyMean(sam
 
 end
