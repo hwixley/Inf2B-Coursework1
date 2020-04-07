@@ -130,7 +130,6 @@ for p = 1:Kfolds
     prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
     post_probs = zeros(sum(PMap == p),D);
-    lik_k = zeros(sum(PMap == p),D);
     post_pClasses = zeros(sum(PMap == p),maxClass);
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
@@ -179,13 +178,11 @@ for p = 1:Kfolds
             end
             for s = 1:sum(PMap == p)
                 post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
-                lik_k(s,:) = po
             end
             post_probs = post_probs - MyMean(post_vex);
             post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
             
-            
-            %lik_k = MyGaussianMV(mu,cov,partitionSamples);
+            lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
             test_prob(:,c) = lik_k.*post_pClasses(:,c);
         else
@@ -217,13 +214,23 @@ for p = 1:Kfolds
             post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
             
             
-            %lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            lik_k = 
+            lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
             test_prob(:,c) = lik_k.*post_pClasses(:,c);
         end
     end
         
+%     [~,test_pred] = max(test_prob, [], 2);
+% 
+%     CM = confusionmat(test_labels,test_pred);
+%     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
+%     
+%     tots = sum(CM,2);
+%     CM_average = CM./tots;
+%     CM_final = CM_final + CM_average;
+end
+
+for p = 1:Kfolds
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = confusionmat(test_labels,test_pred);
@@ -231,8 +238,10 @@ for p = 1:Kfolds
     
     tots = sum(CM,2);
     CM_average = CM./tots;
-    CM_final = CM_final + CM_average;
+    CM_final = CM_final + CM_average;  
 end
+
+
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
 

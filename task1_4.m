@@ -180,9 +180,8 @@ for p = 1:Kfolds
                 post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
             end
             post_probs = post_probs - MyMean(post_vex);
-            post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
-            
-            
+            post_pClasses(:,c) = abs(bsxfun(@minus,100,sqrt(sum(post_probs.^2,2))));
+
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
             test_prob(:,c) = lik_k.*post_pClasses(:,c);
@@ -212,7 +211,7 @@ for p = 1:Kfolds
                 post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
             end
             post_probs = post_probs - MyMean(post_vex);
-            post_pClasses(:,c) = abs(bsxfun(@minus,abs(sum(post_probs,2)),100));
+            post_pClasses(:,c) = abs(bsxfun(@minus,100,sqrt(sum(post_probs.^2,2))));
             
             
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
@@ -230,6 +229,7 @@ for p = 1:Kfolds
     CM_average = CM./tots;
     CM_final = CM_final + CM_average;
 end
+
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
 
