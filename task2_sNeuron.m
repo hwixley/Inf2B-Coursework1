@@ -12,7 +12,7 @@ function [Y] = task2_sNeuron(W, X)
 
 Y = zeros(N,1);
 w = W(2:Dw)';
-wZero = W(1);
+wZero = W(1); %bias value
 
 for i = 1:N
     a = sum(w.*X(i,:)) + wZero;
