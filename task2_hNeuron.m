@@ -10,14 +10,12 @@ function [Y] = task2_hNeuron(W, X)
 [N,D] = size(X);
 [Dw,~] = size(W);
 
-
 Y = zeros(N,1);
+w = W(2:Dw)';
+wZero = W(1);
 
 for i = 1:N
-    W(1)
-    W(2:D)'
-    X(i,:)
-    a = W(2:D)'.*X(i,:) + W(1);
+    a = sum(diag(w.*X(i,:))) + wZero;
     
     if a > 0
         Y(i) = 1;
