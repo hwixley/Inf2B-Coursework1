@@ -134,7 +134,6 @@ for p = 1:Kfolds
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
     meanShared = zeros(maxClass,D);
-    vexShared = zeros(maxClass);
     
     indP = 1;
     partitionSamples = zeros(sum(PMap == p),D);
@@ -185,6 +184,7 @@ for p = 1:Kfolds
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
             test_prob(:,c) = lik_k.*post_pClasses(:,c);
+            
         else
             covShared = covShared + cov;
             meanShared(c,:) = mu;
