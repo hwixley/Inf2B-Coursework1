@@ -10,8 +10,8 @@ if ~isempty(find(var == 0, 1))
     end
 end
 
-pp = -log(2*pi)-log(var) - ((x-mu).^2)./var;
-pp = (1/2*pp) + priorK;
+ppVar = -log(2*pi)-log(var) - ((x-mu).^2)./var;
+pp = (1/2*ppVar) + priorK;
 
 % if sum(isnan(pp)) ~= 0
 %     indexes = find(isnan(pp) == 1);
@@ -28,5 +28,4 @@ pp = (1/2*pp) + priorK;
 %not as effective.
 % pp  = (x - mu)'.*inv(cov).*(x-mu);
 % pp = -(1/2).*pp -(1/2).*log(abs(cov))+log(priorK);
-
 end
