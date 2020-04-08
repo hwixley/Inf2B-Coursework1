@@ -7,18 +7,16 @@ function [Y] = task2_sNeuron(W, X)
 %  W : (D+1)-by-1 vector of weights (double)
 % Output:
 %  Y : N-by-1 vector of output (double)
-[N,D] = size(X);
+[N,~] = size(X);
 [Dw,~] = size(W);
 
 Y = zeros(N,1);
 w = W(2:Dw)';
 wZero = W(1);
 
-a = task2_hNeuron(W,X);
-
 for i = 1:N
-    aN = a(i);
+    a = sum(w.*X(i,:)) + wZero;
     
-    Y(i)= 1/(1+exp(-aN));
+    Y(i)= 1/(1+exp(-a));
 end
 end

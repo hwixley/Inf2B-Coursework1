@@ -183,8 +183,7 @@ for p = 1:Kfolds
 
             lik_k = MyGaussianMV(mu,cov,partitionSamples);
             %test_prob(:,c) = lik_k*prior(c); 
-            test_prob(:,c) = lik_k.*post_pClasses(:,c);
-            
+            test_prob(:,c) = lik_k.*post_pClasses(:,c);            
         else
             covShared = covShared + cov;
             meanShared(c,:) = mu;
