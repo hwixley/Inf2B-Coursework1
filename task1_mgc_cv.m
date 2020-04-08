@@ -269,27 +269,16 @@ for q = 1:Kfolds
             test_prob(:,w) = lik_k * prior(w);
         end
     end
-%     [~,test_pred] = max(test_prob, [], 2);
-% 
-%     CM = confusionmat(test_labels,test_pred)
-%     save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
-%     
-%     tots = sum(CM')';
-%     CM_average = CM./tots;
-%     CM_final = CM_final + CM_average;
-
-end
-for p = 1:Kfolds
     [~,test_pred] = max(test_prob, [], 2);
 
-    CM = confusionmat(test_labels,test_pred);
-    save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,p,CovKind), 'CM');
+    CM = confusionmat(test_labels,test_pred)
+    save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,q,CovKind), 'CM');
     
-    tots = sum(CM,2);
+    tots = sum(CM')';
     CM_average = CM./tots;
-    CM_final = CM_final + CM_average;  
-end
+    CM_final = CM_final + CM_average;
 
+end
 
 % CALCULATE FINAL PARTITION (AVERAGE CM OVER KFOLDS):
 CM = CM_final/Kfolds;
