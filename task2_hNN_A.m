@@ -13,7 +13,7 @@ polyA =[1.89311,4.03806;
         1.53486,3.71794;
         2.13083,2.98602;
         2.59935,3.57138];
-weights = task2_find_hNN_A_weights(polyA); %weight vectors for first layer
+weights = task2_find_hNN_A_weights(polyA); %weight vectors for layer 1
 
 YneurOut1 = zeros(N,4);
 for i = 1:4 %1st hidden layer
