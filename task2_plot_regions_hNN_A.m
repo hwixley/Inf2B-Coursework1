@@ -5,6 +5,7 @@
 function task2_plot_regions_hNN_A()
 %Takes polygon input in the form of a matrix:
 %Each row represents a point. Col 1 = x, Col 2 = y.
+polyB =  [1.89275 6.17329; 7.07547 0.17441; 2.16082 2.18265; -1.52501 2.03226];
 
 poly =[1.89311,4.03806;
     1.53486,3.71794;
