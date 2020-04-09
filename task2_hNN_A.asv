@@ -15,23 +15,19 @@ polyA =[1.89311,4.03806;
         2.59935,3.57138];
 weights = task2_find_hNN_A_weights(polyA); %weight vectors for first layer
 
-YneurOut1 = zeros(N,4);
-for i = 1:4 %1st hidden layer
-    neuronOUT = task2_hNeuron(weights(i,:),X);
+YneurOut = zeros(N,length(weights));
+for i = 1:length(weights) %1st hidden layer
+    neuronOUT = task2_hNeuron(weights(i,:),X)
     
-    YneurOut1(:,i) = neuronOUT;
+    YneurOut(:,i) = neuronOUT;
 end
 
-weights = [-1 1 1]; %fixed weight vector for layer 2/3(inp.s are 1 or 0) 
-YneurOut2 = zeros(N,2);
-for k = 1:2
+weights = [-1 1 1]; %fixed weight vector for second layer(inp.s are 1 or 0) 
+for k = 1:N/2
     ind1 = k*2 -1;
     ind2 = k*2;
     
-    xINP = YneurOut1(:,(ind1:ind2));
-    neuronOUT = task2_hNeuron(weights,xINP);
-    YneurOut2(:,k) = neuronOUT;
+    xINP = YneurOut(:,(ind1:ind2));
+    neuronOUT = task2_hNeuron(weights,xINP); 
 end
-
-Y = task2_hNeuron(weights,YneurOut2);
 end
