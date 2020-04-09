@@ -2,9 +2,14 @@
 % Versin 0.9  (HS 06/03/2020)
 %
 % template script for task2_plot_regions_hNN_A.m
-function task2_plot_regions_hNN_A(poly)
+function task2_plot_regions_hNN_A()
 %Takes polygon input in the form of a matrix:
 %Each row represents a point. Col 1 = x, Col 2 = y.
+
+poly =[1.89311,4.03806;
+    1.53486,3.71794;
+    2.13083,2.98602;
+    2.59935,3.57138];
 
 figure
 title('Neural network classification using the boundaries of polygon A');
