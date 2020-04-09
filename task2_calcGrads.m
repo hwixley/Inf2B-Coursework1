@@ -23,5 +23,5 @@ for k = 1:N
     v = x(k,:);
     c(k) = -1*(m(k)*v(1) - v(2));
 end
-w = cat(2,m,c);
+w = cat(2,c,m);
 end

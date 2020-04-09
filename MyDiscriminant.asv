@@ -1,7 +1,0 @@
-function d = MyDiscriminant(x,probMat)
-mu = MyMean(x);
-cov = MyCov(x);
-
-d = zeros(length(probMat),1);
-for i = 1:length(probMat)
-    d(i) = -(
