@@ -34,4 +34,11 @@ for k = 1:2
 end
 
 Y = task2_hNeuron(weights,YneurOut2);
+
+plot([polyA(1,1),polyA(4,1),polyA(3,1),polyA(2,1),polyA(1,1)],[polyA(1,2),polyA(4,2),polyA(3,2),polyA(2,2),polyA(1,2)],'b-');
+hold on;
+
+for p = 1:N
+    plot(X(p,1),X(p,2),sprintf('X%d',p),'r');
+end
 end
