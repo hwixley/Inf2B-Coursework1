@@ -16,7 +16,12 @@ wZero = W(1); %bias value
 
 for i = 1:N
     a = sum(w.*X(i,:)) + wZero;
+    sOut= 1/(1+exp(-a));
     
-    Y(i)= 1/(1+exp(-a));
+    if sOut < 0.5
+        Y(i) = 0;
+    else
+        Y(i) = 1;
+    end
 end
 end
