@@ -2,7 +2,7 @@
 % Versin 0.9  (HS 06/03/2020)
 %
 % template script for task2_plot_regions_sNN_AB
-function task2_plot_regions_sNN_AB()
+
 %Takes polygon input in the form of a matrix:
 %Each row represents a point. Col 1 = x, Col 2 = y.
 
@@ -41,5 +41,4 @@ for a = 1:4
     hold on;
 end
 
-end
 
