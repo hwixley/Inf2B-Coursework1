@@ -6,6 +6,8 @@ function [Y] = task2_sNN_B(X)
 [N,~] = size(X);
 Y = zeros(N,1);
 
+X = X + 1*10^-20; %Normalisation to account for points ON the boundary lines
+
 polyB =  [1.89275 6.17329;
     7.07547 0.17441;
     2.16082 2.18265;
@@ -20,20 +22,14 @@ for i = 1:4 %1st hidden layer
 end
 
 weights = [-2 1 1]; %fixed weight vector for layer 2/3(inp.s are 1 or 0) 
-YneurOut2 = zeros(N,2);
+YneurOut2 = zeros(N,3);
 
 xINP = YneurOut1(:,[1,4]);
-neuronOUT = task2_sNeuron(weights,xINP) >=
+YneurOut2(:,1) = task2_sNeuron(weights,xINP) >= 0.5;
+YneurOut2(:,2) = YneurOut1(:,2);
+YneurOut2(:,3) = YneurOut1(:,3);
 
-
-for k = 1:2
-    ind1 = k*2 -1;
-    ind2 = k*2;
-    
-    xINP = YneurOut1(:,(ind1:ind2));
-    neuronOUT = task2_sNeuron(weights,xINP) >= 0.5;
-    YneurOut2(:,k) = neuronOUT;
-end
+weights = [-3 2 1 1];
 
 Y = task2_sNeuron(weights,YneurOut2)  >= 0.5;
 end

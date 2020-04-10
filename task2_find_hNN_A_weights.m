@@ -3,7 +3,7 @@
 %
 % template script task2_find_hNN_A_weights.m
 %
-function w = task2_findWeights(x)
+function w = task2_find_hNN_A_weights(x)
 %INPUT x = matrix of polygon vertices
 [N,D] = size(x); % each row represents the coords for each vertex
 
@@ -17,12 +17,12 @@ for i = 1:N
         weights(i,:) = weights(i,:).*-1;
     end
 end
-
+weights
 %Normalization
 for r = 1:N
     weights(r,:) = weights(r,:)./max(abs(weights(r,:))); 
 end
-w = weights;
+w = weights
 end
 
 
