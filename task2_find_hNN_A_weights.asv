@@ -17,7 +17,7 @@ for i = 1:N
         weights(i,:) = weights(i,:).*-1;
     end
 end
-
+weights
 %Normalization to account for points on a given boundary line
 for a = 1:2
     weights(a^2,1) = weights(a^2,1) + 1*10^-14;
