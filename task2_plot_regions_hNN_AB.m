@@ -5,19 +5,34 @@
 
 %Takes polygon input in the form of a matrix:
 %Each row represents a point. Col 1 = x, Col 2 = y.
+
 polyA =[1.89311,4.03806; %polygon A coordinate matrix
     1.53486,3.71794;
     2.13083,2.98602;
     2.59935,3.57138];
 
 figure
-title({'Neural network classification using the boundaries';
-    'of polygon A and B'});
+title({'Neural network classification using step activation functions';
+    'to determine the boundaries of polygon A and B'});
 xlim([-2 8]);
 ylim([-1 8]);
 xlabel('X1');
 ylabel('X2');
 hold on;
+
+x = [-2 8 8 -2];
+y = [8 8 -1 -1];
+patch(x,y,[0.3010, 0.7450, 0.9330]);
+
+
+x = polyB(:,1)';
+y = polyB(:,2)';
+patch(x,y,[0.3060, 0.6740, 0.3080]);
+
+x = polyA(:,1)';
+y = polyA(:,2)';
+patch(x,y,[0.3010, 0.7450, 0.9330]);
+
 plot([polyA(1,1),polyA(4,1),polyA(3,1),polyA(2,1),polyA(1,1)],[polyA(1,2),polyA(4,2),polyA(3,2),polyA(2,2),polyA(1,2)],'b-');
 hold on;
 
@@ -40,6 +55,4 @@ for a = 1:4
     hold on;
 end
 
-
-
-
+legend({'Class 0','Class 1'});

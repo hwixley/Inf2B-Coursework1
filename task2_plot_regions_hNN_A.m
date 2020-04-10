@@ -12,13 +12,24 @@ poly =[1.89311,4.03806; %polygon A coordinate matrix
     2.59935,3.57138];
 
 figure
-title('Neural network classification using the boundaries of polygon A');
-xlim([0 4]);
+title({'Neural network classification using step activation functions';
+    'to determine the boundaries of polygon A'});xlim([0 4]);
 ylim([0 5]);
 xlabel('X1');
 ylabel('X2');
 hold on;
-plot([poly(1,1),poly(4,1),poly(3,1),poly(2,1),poly(1,1)],[poly(1,2),poly(4,2),poly(3,2),poly(2,2),poly(1,2)],'b-');
+
+x = [-2 8 8 -2];
+y = [8 8 -1 -1];
+patch(x,y,[0.3010, 0.7450, 0.9330]);
+
+
+x = poly(:,1)';
+y = poly(:,2)';
+patch(x,y,[0.3060, 0.6740, 0.3080]);
+
+
+plot([poly(1,1),poly(4,1),poly(3,1),poly(2,1),poly(1,1)],[poly(1,2),poly(4,2),poly(3,2),poly(2,2),poly(1,2)],'g-');
 hold on;
 
 pCoeffs = [0 2; -0.14 0.1; -0.08 -0.08; 0 0 ];
@@ -27,5 +38,5 @@ for a = 1:4
     hold on;
 end
 
-
+legend({'Class 0','Class 1'});
 
