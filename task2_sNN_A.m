@@ -14,7 +14,6 @@ weights = task2_find_hNN_A_weights(polyA); %weight vectors for layer 1
 
 YneurOut1 = zeros(N,4);
 for i = 1:4 %1st hidden layer
-    task2_sNeuron(weights(i,:),X)
     neuronOUT = task2_sNeuron(weights(i,:),X) >= 0.5;
     
     YneurOut1(:,i) = neuronOUT;
