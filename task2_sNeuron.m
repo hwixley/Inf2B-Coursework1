@@ -8,20 +8,14 @@ function [Y] = task2_sNeuron(W, X)
 % Output:
 %  Y : N-by-1 vector of output (double)
 [N,~] = size(X);
-[Dw,~] = size(W);
+[~,D] = size(W);
 
 Y = zeros(N,1);
-w = W(2:Dw)';
+w = W(2:D)';
 wZero = W(1); %bias value
 
 for i = 1:N
-    a = sum(w.*X(i,:)) + wZero;
-    sOut= 1/(1+exp(-a));
-    
-    if sOut < 0.5
-        Y(i) = 0;
-    else
-        Y(i) = 1;
-    end
+    a = sum(diag(w.*X(i,:))) + wZero;
+    Y(i)= 1/(1+exp(-a));
 end
 end
