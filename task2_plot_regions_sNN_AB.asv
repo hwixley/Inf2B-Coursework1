@@ -19,20 +19,6 @@ ylim([-1 8]);
 xlabel('X1');
 ylabel('X2');
 hold on;
-
-x = [-2 8 8 -2];
-y = [8 8 -1 -1];
-patch(x,y,[0.3010, 0.7450, 0.9330]);
-
-
-x = polyB(:,1)';
-y = polyB(:,2)';
-patch(x,y,[0.3060, 0.6740, 0.3080]);
-
-x = polyA(:,1)';
-y = polyA(:,2)';
-patch(x,y,[0.3010, 0.7450, 0.9330]);
-
 plot([polyA(1,1),polyA(4,1),polyA(3,1),polyA(2,1),polyA(1,1)],[polyA(1,2),polyA(4,2),polyA(3,2),polyA(2,2),polyA(1,2)],'b-');
 hold on;
 
@@ -51,7 +37,6 @@ polyB =  [1.89275 6.17329;
 plot([polyB(1,1),polyB(4,1),polyB(3,1),polyB(2,1),polyB(1,1)],[polyB(1,2),polyB(4,2),polyB(3,2),polyB(2,2),polyB(1,2)],'g-');
 pCoeffs = [0 2; -0.14 0.1; -0.08 -0.08; 0 0 ];
 for a = 1:4
-    disp 1
     text(polyB(a,1)+pCoeffs(a,1),polyB(a,2)+pCoeffs(a,1),sprintf('B%d',a));
     hold on;
 end
