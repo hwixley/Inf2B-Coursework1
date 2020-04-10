@@ -17,12 +17,12 @@ for i = 1:N
         weights(i,:) = weights(i,:).*-1;
     end
 end
-weights
+
 %Normalization
 for r = 1:N
     weights(r,:) = weights(r,:)./max(abs(weights(r,:))); 
 end
-w = weights
+w = weights;
 end
 
 

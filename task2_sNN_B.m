@@ -6,8 +6,6 @@ function [Y] = task2_sNN_B(X)
 [N,~] = size(X);
 Y = zeros(N,1);
 
-X = X + 1*10^-20; %Normalisation to account for points ON the boundary lines
-
 polyB =  [1.89275 6.17329;
     7.07547 0.17441;
     2.16082 2.18265;
