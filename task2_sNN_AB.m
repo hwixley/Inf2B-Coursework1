@@ -18,5 +18,5 @@ YneurOut = cat(2, Y_polyA, Y_polyB);
 
 weights = [-1 -1 1];
 
-Y  = task2_sNeuron(weights,YneurOut);
+Y  = task2_sNeuron(weights,YneurOut) >= 0.5;
 end
