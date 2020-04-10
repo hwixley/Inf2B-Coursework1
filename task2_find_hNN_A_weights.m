@@ -18,12 +18,13 @@ for i = 1:N
     end
 end
 
-%Normalization to account for points on a given boundary line
+%Normalization to only account for points inside polygon (not including
+%the periphery)
 for a = 1:2
-    weights(a^2,1) = weights(a^2,1) + 1*10^-14;
+    weights(a^2,1) = weights(a^2,1) - 1*10^-14;
 end
 for b = 2:3
-    weights(b,1) = weights(b,1) - 1*10^-14;
+    weights(b,1) = weights(b,1) + 1*10^-14;
 end
 
 %Normalization
