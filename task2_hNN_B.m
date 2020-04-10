@@ -20,15 +20,14 @@ for i = 1:4 %1st hidden layer
 end
 
 weights = [-1 1 1]; %fixed weight vector for layer 2/3(inp.s are 1 or 0) 
-YneurOut2 = zeros(N,2);
-for k = 1:2
-    ind1 = k*2 -1;
-    ind2 = k*2;
-    
-    xINP = YneurOut1(:,(ind1:ind2));
-    neuronOUT = task2_hNeuron(weights,xINP);
-    YneurOut2(:,k) = neuronOUT;
-end
+YneurOut2 = zeros(N,3);
+
+xINP = YneurOut1(:,[1,4]);
+YneurOut2(:,1) = task2_hNeuron(weights,xINP);
+YneurOut2(:,2) = YneurOut1(:,2);
+YneurOut2(:,3) = YneurOut1(:,3);
+
+weights = [-2.9 2 1 1];
 
 Y = task2_hNeuron(weights,YneurOut2);
 end
