@@ -19,27 +19,31 @@ xlabel('X1');
 ylabel('X2');
 hold on;
 
-class1 = zeros(2,500);
-class0 = zeros(2,2300);
-ind1 = 1;
-ind0 = 1;
-for x = 1:500
-    for y = 1:500
-        if task2_hNN_A([x/100,y/100]) == 1
-            class1(:,ind1) = [x/100;y/100];
-            ind1 = ind1 + 1;
+for x = 0:4
+    for y = 0:5
+        if task2_hNN_A(x,y) == 1
+            colour = [0.3060, 0.6740, 0.3080];
         else
-            class0(:,ind0) = [x/100;y/100];
-            ind0 = ind0 + 1;
+            colour = [0.3010, 0.7450, 0.9330];
         end
+        plot(x,y,colour);
+        hold on;
     end
 end
-class1 = class1(:,[1:ind1-1]);
-class0 = class0(:,[1:ind0-1]);
 
-scatter(class1(1,:),class1(2,:),30,[0.3060, 0.6740, 0.3080],'filled');
-hold on;
-scatter(class0(1,:),class0(2,:),30,[0.3010, 0.7450, 0.9330],'filled');
+
+% x = [-2 8 8 -2];
+% y = [8 8 -1 -1];
+% patch(x,y,[0.3010, 0.7450, 0.9330]);
+% 
+% 
+% x = poly(:,1)';
+% y = poly(:,2)';
+% patch(x,y,[0.3060, 0.6740, 0.3080]);
+% 
+% 
+% plot([poly(1,1),poly(4,1),poly(3,1),poly(2,1),poly(1,1)],[poly(1,2),poly(4,2),poly(3,2),poly(2,2),poly(1,2)],'g-');
+% hold on;
 
 pCoeffs = [0 2; -0.14 0.1; -0.08 -0.08; 0 0 ];
 for a = 1:4
@@ -47,5 +51,5 @@ for a = 1:4
     hold on;
 end
 
-legend({'Class 1','Class 0'});
+legend({'Class 0','Class 1'});
 
