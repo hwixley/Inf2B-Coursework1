@@ -3,56 +3,36 @@
 %
 % template script for task2_plot_regions_sNN_AB
 
-%Takes polygon input in the form of a matrix:
-%Each row represents a point. Col 1 = x, Col 2 = y.
-% 
-polyA =[1.89311,4.03806; %polygon A coordinate matrix
-    1.53486,3.71794;
-    2.13083,2.98602;
-    2.59935,3.57138];
-
 figure
-title({'Neural network classification using sigmoid activation functions';
-    'to determine the boundaries of polygon A and B'});
+title({'A graph to show the decision boundaries of the sigmoid function'
+       'neural network implementation, classified by the boundaries of '
+       'polygon A and B'});
 xlim([-2 8]);
-ylim([-1 8]);
+ylim([-2 8]);
 xlabel('X1');
 ylabel('X2');
 hold on;
 
-x = [-2 8 8 -2];
-y = [8 8 -1 -1];
-patch(x,y,[0.3010, 0.7450, 0.9330]);
+class1 = zeros(2,100000);
+class0 = zeros(2,900000);
+ind1 = 1;
+ind0 = 1;
+for x = -200:800
+    for y = -200:800
+        if task2_sNN_AB([x/100,y/100]) == 1
+            class1(:,ind1) = [x/100;y/100];
+            ind1 = ind1 + 1;
+        else
+            class0(:,ind0) = [x/100;y/100];
+            ind0 = ind0 + 1;
+        end
+    end
+end
+class1 = class1(:,[1:ind1-1]);
+class0 = class0(:,[1:ind0-1]);
 
-
-x = polyB(:,1)';
-y = polyB(:,2)';
-patch(x,y,[0.3060, 0.6740, 0.3080]);
-
-x = polyA(:,1)';
-y = polyA(:,2)';
-patch(x,y,[0.3010, 0.7450, 0.9330]);
-
-plot([polyA(1,1),polyA(4,1),polyA(3,1),polyA(2,1),polyA(1,1)],[polyA(1,2),polyA(4,2),polyA(3,2),polyA(2,2),polyA(1,2)],'b-');
+scatter(class0(1,:),class0(2,:),30,[0.3010, 0.7450, 0.9330],'filled');
 hold on;
-
-pCoeffs = [0 5; -0.14 0.1; -0.08 -0.08; 0 0 ];
-for a = 1:4
-    text(polyA(a,1)+pCoeffs(a,1),polyA(a,2)+pCoeffs(a,1),sprintf('A%d',a));
-    hold on;
-end
-
-
-polyB =  [1.89275 6.17329;
-    7.07547 0.17441;
-    2.16082 2.18265;
-    -1.52501 2.03226];
-
-plot([polyB(1,1),polyB(4,1),polyB(3,1),polyB(2,1),polyB(1,1)],[polyB(1,2),polyB(4,2),polyB(3,2),polyB(2,2),polyB(1,2)],'g-');
-pCoeffs = [0 2; -0.14 0.1; -0.08 -0.08; 0 0 ];
-for a = 1:4
-    text(polyB(a,1)+pCoeffs(a,1),polyB(a,2)+pCoeffs(a,1),sprintf('B%d',a));
-    hold on;
-end
+scatter(class1(1,:),class1(2,:),30,[0.3060, 0.6740, 0.3080],'filled');
 
 legend({'Class 0','Class 1'});
