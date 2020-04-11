@@ -18,10 +18,23 @@ for i = 1:4 %1st hidden layer
     
     YneurOut1(:,i) = neuronOUT;
 end
-w = YneurOut1(:,1).*YneurOut1(:,2).*YneurOut1(:,3);
+YneurOut1
 
-weights = [0 w];
-Y = task2_sNeuron(weights,YneurOut1(:,4));
-% weights = [0 1];
-% Y = task2_sNeuron(weights,neurOUT)
+%weights = [0 1 1];
+YneurOut2 = zeros(N,2);
+for k = 1:2
+    ind1 = k*2 -1;
+    ind2 = k*2;
+
+    x2 = YneurOut1(:,ind2);
+    weights = [0 x2];
+    
+    xINP = YneurOut1(:,ind1)
+    neuronOUT = task2_sNeuron(weights,xINP)% >= 0.5;
+    YneurOut2(:,k) = neuronOUT;
+end
+YneurOut2
+weights = [0 
+
+Y = task2_sNeuron(weights,YneurOut2)
 end
