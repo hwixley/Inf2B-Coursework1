@@ -1,5 +1,6 @@
 
-figure
+figure('Renderer', 'painters', 'Position', [10 10 900 600])
+
 for i = 1:24
     colour = a(i*2,:);
     subplot(6,4,i)
@@ -17,9 +18,12 @@ for i = 1:24
     hold on;
     plot(bX,bY,'r*');
     hold on;
-    str = sprintf('Correlation of feature %d',i);
+    str = sprintf('Corr. of feature %d',i);
     title(str,'FontSize',5);
-end
     
+    ax= gca;
+    ax.FontSize = 4;
+    xticks([1 4 8 12 16 20 24]);
+end
     
     
