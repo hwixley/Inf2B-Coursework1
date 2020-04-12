@@ -41,6 +41,7 @@ for h = 1:D
         eigVals(g) = EVals(g);
     end
     Cumvar(h) = MyVar(eigVals);
+    %Cumvar(h) = var(eigVals);
 end
 
 MinDims = zeros(4,1);
