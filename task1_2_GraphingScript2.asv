@@ -1,14 +1,21 @@
 load('t1_R.mat');
 figure('Renderer', 'painters', 'Position', [10 10 900 600]);
 
+colour = [0.03 0.144 0.255];
+xlim([0 24]);
+ylim([-1 1]);
+y = MyMean(R);
+x = 1:24;
+
+bar
+
 for i = 1:24
-    colour = [0.03 0.144 0.255];
+    
     subplot(6,4,i)
     
-    xlim([0 24]);
-    ylim([-1 1]);
-    x = 1:24;
-    y = R(:,i);
+
+    
+    
     
     bar(y);
     hold on;
@@ -28,9 +35,6 @@ for i = 1:24
     ylabel('Correlation','FontSize',5);
 end
 
-corrMatGraphs = gcf;
+corrMatGraphs2 = gcf;
 
-print('corrMatGraphs','-dpdf');
-
-    
-    
+print('corrMatGraphs2','-dpdf');
