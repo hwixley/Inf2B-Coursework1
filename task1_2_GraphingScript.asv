@@ -32,8 +32,8 @@ for i = 1:24
     gca.FontSize = 4;
     hold on;
     
-    xlabel('Feature #','FontSize',5);
-    ylabel('Correlation','FontSize',5);
+    xlabel('Feature #');
+    ylabel('Correlation',');
 end
 
 corrMatGraphs = gcf;
