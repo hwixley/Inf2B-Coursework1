@@ -26,16 +26,15 @@ for c = 1:10
 end 
 
 
-% scatter(PC_X(:,1),PC_X(:,2),'+');
-xlabel('1st Principal Component');
-ylabel('2nd Principal Component');
-%legend(list_species(1:10));
+title('Species principal component analysis');
+xl = xlabel('1st principal component');
+yl = ylabel('2nd principal component');
+xl.FontSize = 9;
+yl.FontSize = 9;
+
 cb = colorbar('eastoutside','Ticks',(1:10)./10,'TickLabels',list_species(1:10));
 cb.FontSize = 7;
 hold on;
 
 print('gcf','-dpdf');
-% cb.Ticks = 1:10;
-% hold on;
-% cb.TickLabels = list_species(1:10);
-% hold on;
+
