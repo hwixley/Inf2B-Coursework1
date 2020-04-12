@@ -1,3 +1,6 @@
+hold off;
+figure('Renderer', 'painters', 'Position', [10 10 900 900]);
+
 load('t1_EVecs.mat');
 load('t1_S.mat');
 load('dset.mat');
@@ -9,6 +12,8 @@ PC(:,2) = EVecs(:,2);
 
 PC_X = X*PC;
 
+colours = parula(10);
+
 for c = 1:10
     indexes = find(Y_species == c);
     X_class = zeros(length(indexes),D);
@@ -16,8 +21,23 @@ for c = 1:10
     for i = 1:length(indexes)
         X_class(i,:) = X(indexes(i),:);
     end
-end
+    PC_Xc = X_class*PC;
+    
+    scatter(PC_Xc(:,1),PC_Xc(:,2),12,colours(c,:),'+');
+    hold on;
+end 
 
-scatter(PC_X(:,1),PC_X(:,2),'+');
+
+% scatter(PC_X(:,1),PC_X(:,2),'+');
 xlabel('1st Principal Component');
 ylabel('2nd Principal Component');
+%legend(list_species(1:10));
+cb = colorbar('eastoutside','Ticks',(1:10)./10,'TickLabels',list_species(1:10));
+cb.FontSize = 3;
+hold on;
+
+set(gcf, 'PaperPositionMode', 'auto');
+% cb.Ticks = 1:10;
+% hold on;
+% cb.TickLabels = list_species(1:10);
+% hold on;
