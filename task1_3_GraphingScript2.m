@@ -36,5 +36,7 @@ cb = colorbar('eastoutside','Ticks',(1:10)./10,'TickLabels',list_species(1:10));
 cb.FontSize = 7;
 hold on;
 
+PCA_graph = gcf;
+
 print('gcf','-dpdf');
 
