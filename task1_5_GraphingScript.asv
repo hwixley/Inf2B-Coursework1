@@ -1,0 +1,8 @@
+hold off;
+
+load('dset.mat');
+
+cK = 1;
+kF = 5;
+
+for i = 1:10
