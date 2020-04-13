@@ -1,4 +1,4 @@
-function y = gaussianMV(mu, covar, X)
+function y = MyGaussianMV(mu, covar, X)
 % Y = GAUSSIANMV(MU, COVAR, X) evaluates a multi-variate Gaussian
 % density in D-dimensions at a set of points given by the rows of
 % the matrix X. The Gaussian density has mean vector MU and
@@ -17,6 +17,7 @@ invcov = inv(covar);
 mu = reshape(mu, 1, d); % Ensure that mu is a row vector
 
 % Replicate mu and subtract from each data point
+
 X = X - ones(n, 1)*mu;
 fact = sum(((X*invcov).*X), 2);
 

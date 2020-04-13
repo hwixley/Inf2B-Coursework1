@@ -97,24 +97,24 @@ for p = 1:Kfolds
         end
         
         Ms(c,:) = MyMean(vex);
-        cov = MyCov(vex);
+        covar = MyCov(vex);
         
         if CovKind ~= 3
-            cov = regularize + cov;
+            covar = regularize + covar;
             
             if CovKind == 2
-                Covs(c,:,:) = diag(diag(cov));
+                Covs(c,:,:) = diag(diag(covar));
             else
-                Covs(c,:,:) = cov;
+                Covs(c,:,:) = covar;
             end
         else
-            covShared = covShared + cov;
+            covShared = covShared + covar;
         end
     end   
     if CovKind == 3
-        cov = regularize + (covShared./double(maxClass));
+        covar = regularize + (covShared./double(maxClass));
         for c = 1:maxClass
-            Covs(c,:,:) = cov;
+            Covs(c,:,:) = covar;
         end
     end
     
@@ -124,36 +124,33 @@ end
 
 %CALCULATION OF CONFUSION MATRICES
 CM_final = zeros(maxClass,maxClass);
+prior = ones(1,maxClass)./double(maxClass);
 
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
-    prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
-
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
     meanShared = zeros(maxClass,D);
     
+    testIndexes = find(PMap == p);
+    testData = zeros(length(testIndexes),D);
+    for t = 1:length(testIndexes)
+        testData(t,:) = X(testIndexes(t),:);
+        test_labels(t) = Y(testIndexes(t));
+    end
+    
     for c = 1:maxClass
-        validSamples = sum(cat(2, ALLMap(:,1) ~= p, ALLMap(:,2) == c),2);
-        validIndexes = find(validSamples == 2);
-        trainData = zeros(length(validIndexes),D); 
-        for i = 1:length(validIndexes)
-            trainData(i,:) = X(validIndexes(i),:);
+        trainSamples = sum(cat(2, ALLMap(:,1) ~= p, ALLMap(:,2) == c),2);
+        trainIndexes = find(trainSamples == 2);
+        trainData = zeros(length(trainIndexes),D); 
+        for i = 1:length(trainIndexes)
+            trainData(i,:) = X(trainIndexes(i),:);
         end
-        
-        testIndexes = find(PMap == p);
-        testData = zeros(length(testIndexes),D);
-        for t = 1:length(testIndexes)
-            testData(t,:) = X(testIndexes(t),:);
-            test_labels(t) = Y(testIndexes(t));
-        end
-        
-        
-        prior(c) = 1/maxClass;%length(validIndexes)/sum(PMap ~= p);
-        
+               
         mu_hat = MyMean(trainData);
         sigma_hat = MyCov(trainData);
+        
              
         if CovKind ~= 3
             sigma_hat = regularize + sigma_hat;
@@ -162,16 +159,9 @@ for p = 1:Kfolds
                 sigma_hat = diag(diag(sigma_hat));
             end
             
-            %lik_k = MyGaussianMV(mu_hat,sigma_hat,testData);
-            lik_k = MyPostProb(mu_hat,sigma_hat,prior(c),testData);
-%             size(lik_k)
-%             size(testData)
-%             size(test_prob)
-            lik_k = diag(lik_k);
-%             pdf = mvnpdf(testData,mu_hat,sigma_hat);
-%             [row,col] = size(lik_k);
-%             sum(abs(lik_k -pdf)<0.1)/row
-            test_prob(:,c) = lik_k*prior(c);          
+            lik_k = iterateGaussian(mu_hat,sigma_hat,testData);
+
+            test_prob(:,c) = lik_k + log(prior(c));          
         else
             covShared = covShared + sigma_hat;
             meanShared(c,:) = mu_hat;
@@ -179,18 +169,14 @@ for p = 1:Kfolds
     end
     if CovKind == 3
         sigma_hat  = regularize + (covShared./double(maxClass));
-        for c = 1:maxClass
+        for c = 1:maxClass            
             mu_hat = meanShared(c,:);
-            validSamples = sum(cat(2, ALLMap(:,1) ~= p, ALLMap(:,2) == c),2);
-            prior(c) = sum(validSamples == 2)/sum(PMap ~= p);
-                     
-            lik_k = MyGaussianMV(mu_hat,sigma_hat,partitionSamples);
+            
+            lik_k = iterateGaussian(mu_hat,sigma_hat,testData);
 
-            test_prob(:,c) = lik_k.*prior(c);
+            test_prob(:,c) = lik_k + log(prior(c));
         end
     end
-    MyMean(test_prob');
-    test_prob(:,1);
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = comp_confmat(maxClass,test_labels,test_pred);
