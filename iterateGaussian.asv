@@ -1,8 +1,0 @@
-function Y = iterateGaussian(mu, cov, prior, X)
-[N,D] = size(X);
-Y = zeros(N,1);
-
-for i = 1:N
-    Y(i) = log(gaussianMV(mu,cov,X(i,:))) + log(MyPostProb(mu,cov,prior,;
-end
-end
