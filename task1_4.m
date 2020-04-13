@@ -126,6 +126,8 @@ end
 CM_final = zeros(maxClass,maxClass);
 prior = ones(1,maxClass)./double(maxClass);
 
+CM_tot = zeros(maxClass,maxClass);
+
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
     test_labels = zeros(sum(PMap == p),1);
@@ -185,7 +187,11 @@ for p = 1:Kfolds
     tots = sum(CM,2);
     CM_average = CM./tots;
     CM_final = CM_final + CM_average;
+    
+    CM_tot = CM_tot + CM;
 end
+
+%t14_plotGaussian(CM_tot,maxClass);
 
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
