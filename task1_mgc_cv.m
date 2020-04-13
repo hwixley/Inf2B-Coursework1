@@ -1,7 +1,4 @@
-%
-% Versin 0.9  (HS 06/03/2020)
-%
-function task1_mgc_cv(X, Y, CovKind, epsilon, Kfolds)
+function task1_4(X, Y, CovKind, epsilon, Kfolds)
 % Input:
 %  X : N-by-D matrix of feature vectors (double)
 %  Y : N-by-1 label vector (int32)
@@ -100,24 +97,24 @@ for p = 1:Kfolds
         end
         
         Ms(c,:) = MyMean(vex);
-        cov = MyCov(vex);
+        covar = MyCov(vex);
         
         if CovKind ~= 3
-            cov = regularize + cov;
+            covar = regularize + covar;
             
             if CovKind == 2
-                Covs(c,:,:) = diag(diag(cov));
+                Covs(c,:,:) = diag(diag(covar));
             else
-                Covs(c,:,:) = cov;
+                Covs(c,:,:) = covar;
             end
         else
-            covShared = covShared + cov;
+            covShared = covShared + covar;
         end
     end   
     if CovKind == 3
-        cov = regularize + (covShared./double(maxClass));
+        covar = regularize + (covShared./double(maxClass));
         for c = 1:maxClass
-            Covs(c,:,:) = cov;
+            Covs(c,:,:) = covar;
         end
     end
     
@@ -127,101 +124,61 @@ end
 
 %CALCULATION OF CONFUSION MATRICES
 CM_final = zeros(maxClass,maxClass);
+prior = ones(1,maxClass)./double(maxClass);
+
+CM_tot = zeros(maxClass,maxClass);
 
 for p = 1:Kfolds
     CM = zeros(maxClass,maxClass);
-    prior = zeros(1,maxClass);
     test_labels = zeros(sum(PMap == p),1);
-    post_probs = zeros(sum(PMap == p),D);
-    post_pClasses = zeros(sum(PMap == p),maxClass);
     test_prob = zeros(sum(PMap == p),maxClass);
     covShared = 0;
     meanShared = zeros(maxClass,D);
     
-    indP = 1;
-    partitionSamples = zeros(sum(PMap == p),D);
-    for c = 1:maxClass
-        validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
-        vexIndexes = find(validSamples == 2);
-          
-        for v = 1:length(vexIndexes)
-            elem = vexIndexes(v);
-            partitionSamples(indP,:) = X(elem,:);
-            test_labels(indP) = c;
-            indP = indP + 1;
-        end
-    end    
-    
+    testIndexes = find(PMap == p);
+    testData = zeros(length(testIndexes),D);
+    for t = 1:length(testIndexes)
+        testData(t,:) = X(testIndexes(t),:);
+        test_labels(t) = Y(testIndexes(t));
+    end
     
     for c = 1:maxClass
-        validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
-        prior(c) = sum(validSamples == 2)/sum(PMap == p);
-        
-        vexIndexes = find(validSamples == 2);
-        vex = zeros(length(vexIndexes),D);   
-        for v = 1:length(vexIndexes)
-            elem = vexIndexes(v);
-            vex(v,:) = X(elem,:);
+        trainSamples = sum(cat(2, ALLMap(:,1) ~= p, ALLMap(:,2) == c),2);
+        trainIndexes = find(trainSamples == 2);
+        trainData = zeros(length(trainIndexes),D); 
+        for i = 1:length(trainIndexes)
+            trainData(i,:) = X(trainIndexes(i),:);
         end
+               
+        mu_hat = MyMean(trainData);
+        sigma_hat = MyCov(trainData);
         
-        mu = MyMean(vex);
-        cov = MyCov(vex);
              
         if CovKind ~= 3
-            cov = regularize + cov;
+            sigma_hat = regularize + sigma_hat;
         
             if CovKind == 2
-                cov = diag(diag(cov));
+                sigma_hat = diag(diag(sigma_hat));
             end
             
-            post_vex = zeros(length(vexIndexes),D);
-            for s = 1:length(vexIndexes)
-                post_vex(s,:) = post_prob(vex,prior(c),cov,mu,vex(s,:));
-            end
-            for s = 1:sum(PMap == p)
-                post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
-            end
-            post_probs = post_probs - MyMean(post_vex);
-            post_pClasses(:,c) = abs(bsxfun(@minus,100,sqrt(sum(post_probs.^2,2))));
+            lik_k = iterateGaussian(mu_hat,sigma_hat,testData);
 
-            lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            %test_prob(:,c) = lik_k*prior(c); 
-            test_prob(:,c) = lik_k.*post_pClasses(:,c);            
+            test_prob(:,c) = lik_k + log(prior(c));          
         else
-            covShared = covShared + cov;
-            meanShared(c,:) = mu;
+            covShared = covShared + sigma_hat;
+            meanShared(c,:) = mu_hat;
         end   
     end
     if CovKind == 3
-        cov  = regularize + (covShared./double(maxClass));
-        for c = 1:maxClass
-            mu = meanShared(c,:);
-                     
-            validSamples = sum(cat(2, ALLMap(:,1) == p, ALLMap(:,2) == c),2);
-            vexIndexes = find(validSamples == 2);
-            vex = zeros(length(vexIndexes),D);   
-            for v = 1:length(vexIndexes)
-                elem = vexIndexes(v);
-                vex(v,:) = X(elem,:);
-            end
+        sigma_hat  = regularize + (covShared./double(maxClass));
+        for c = 1:maxClass            
+            mu_hat = meanShared(c,:);
             
-            post_vex = zeros(length(vexIndexes),D);
-            for s = 1:length(vexIndexes)
-                post_vex(s,:) = post_prob(vex,prior(c),cov,mu,vex(s,:));
-            end
-            for s = 1:sum(PMap == p)
-                post_probs(s,:) = post_prob(vex,prior(c),cov,mu,partitionSamples(s,:));
-            end
-            post_probs = post_probs - MyMean(post_vex);
-            post_pClasses(:,c) = abs(bsxfun(@minus,100,sqrt(sum(post_probs.^2,2))));
-            
-            
-            lik_k = MyGaussianMV(mu,cov,partitionSamples);
-            %test_prob(:,c) = lik_k*prior(c); 
-            test_prob(:,c) = lik_k.*post_pClasses(:,c);
+            lik_k = iterateGaussian(mu_hat,sigma_hat,testData);
+
+            test_prob(:,c) = lik_k + log(prior(c));
         end
     end
-        
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = comp_confmat(maxClass,test_labels,test_pred);
@@ -230,7 +187,11 @@ for p = 1:Kfolds
     tots = sum(CM,2);
     CM_average = CM./tots;
     CM_final = CM_final + CM_average;
+    
+    CM_tot = CM_tot + CM;
 end
+
+%t14_plotGaussian(CM_tot,maxClass);
 
 CM = CM_final/Kfolds;
 save(sprintf('t1_mgc_%dcv%d_ck%d_CM.mat',Kfolds,Kfolds+1,CovKind), 'CM');
