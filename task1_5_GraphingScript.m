@@ -20,7 +20,6 @@ for i = -20:3
     ind = ind + 1;
 end
 task1_mgc_cv(X,Y_species,cK,0.01,kF);
-accuracies
 
 x = accuracies(:,1);
 y = accuracies(:,2);
@@ -36,7 +35,7 @@ gca.FontSize = 3;
 
 title({'A graph to show the relationship between classification'
     'accuracy and the size of epsilon'});
-xl = xlabel('Epsilon exponent (s.t. epsilon = 10^x)');
+xl = xlabel('Epsilon exponent (s.t. epsilon = -10^x)');
 yl = ylabel('Classification accuracy');
 xl.FontSize = 10;
 yl.FontSize = 10;
