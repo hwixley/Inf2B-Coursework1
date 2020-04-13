@@ -162,15 +162,7 @@ for p = 1:Kfolds
                 sigma_hat = diag(diag(sigma_hat));
             end
             
-            %lik_k = MyGaussianMV(mu_hat,sigma_hat,testData);
-            lik_k = MyPostProb(mu_hat,sigma_hat,prior(c),testData);
-%             size(lik_k)
-%             size(testData)
-%             size(test_prob)
-            lik_k = diag(lik_k);
-%             pdf = mvnpdf(testData,mu_hat,sigma_hat);
-%             [row,col] = size(lik_k);
-%             sum(abs(lik_k -pdf)<0.1)/row
+            lik_k = MyGaussianMV(mu_hat,sigma_hat,testData);
             test_prob(:,c) = lik_k*prior(c);          
         else
             covShared = covShared + sigma_hat;
@@ -189,8 +181,8 @@ for p = 1:Kfolds
             test_prob(:,c) = lik_k.*prior(c);
         end
     end
-    MyMean(test_prob');
-    test_prob(:,1);
+    test
+        
     [~,test_pred] = max(test_prob, [], 2);
 
     CM = comp_confmat(maxClass,test_labels,test_pred);
